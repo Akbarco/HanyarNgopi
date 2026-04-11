@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.pos.controller.MenuController"
+      spacing="20">
+    <padding><Insets top="32" right="32" bottom="32" left="32"/></padding>
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT">
+        <VBox HBox.hgrow="ALWAYS">
+            <Label text="Kelola Menu"
+                   style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #1A1A2E;"/>
+            <Label text="Tambah, edit, dan hapus menu"
+                   style="-fx-font-size: 13; -fx-text-fill: #6B7280;"/>
+        </VBox>
+        <Button text="+ Tambah Menu" onAction="#handleTambahMenu"
+                style="-fx-background-color: #1A1A2E; -fx-text-fill: white;
+                       -fx-font-weight: bold; -fx-font-size: 13;
+                       -fx-background-radius: 10; -fx-cursor: hand;
+                       -fx-pref-height: 42; -fx-padding: 0 20 0 20;"/>
+    </HBox>
+
+    <!-- Table Card -->
+    <VBox style="-fx-background-color: white; -fx-background-radius: 12;
+                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 10, 0, 0, 2);"
+          VBox.vgrow="ALWAYS">
+        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+        <Label text="Daftar Menu"
+               style="-fx-font-size: 15; -fx-font-weight: bold; -fx-text-fill: #1A1A2E;">
+            <VBox.margin><Insets bottom="12"/></VBox.margin>
+        </Label>
+
+        <TableView fx:id="tableMenu" VBox.vgrow="ALWAYS"
+                   style="-fx-background-color: transparent; -fx-border-color: transparent;">
+            <columns>
+                <TableColumn fx:id="colNama" text="Nama Menu" prefWidth="300"/>
+                <TableColumn fx:id="colKategori" text="Kategori" prefWidth="150"/>
+                <TableColumn fx:id="colHarga" text="Harga" prefWidth="200"/>
+                <TableColumn fx:id="colAksi" text="Aksi" prefWidth="200"/>
+            </columns>
+            <placeholder>
+                <Label text="Belum ada data menu"
+                       style="-fx-text-fill: #9CA3AF; -fx-font-size: 13;"/>
+            </placeholder>
+        </TableView>
+    </VBox>
+</VBox>

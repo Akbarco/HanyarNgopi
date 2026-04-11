@@ -1,0 +1,32 @@
+package com.pos.model;
+
+public class Menu {
+    private int idMenu;
+    private String namaMenu;
+    private double harga;
+    private String kategori;
+
+    public Menu() {}
+
+    public Menu(int idMenu, String namaMenu, double harga, String kategori) {
+        this.idMenu = idMenu;
+        this.namaMenu = namaMenu;
+        this.harga = harga;
+        this.kategori = kategori;
+    }
+
+    public int getIdMenu() { return idMenu; }
+    public void setIdMenu(int idMenu) { this.idMenu = idMenu; }
+
+    public String getNamaMenu() { return namaMenu; }
+    public void setNamaMenu(String namaMenu) { this.namaMenu = namaMenu; }
+
+    public double getHarga() { return harga; }
+    public void setHarga(double harga) { this.harga = harga; }
+
+    public String getKategori() { return kategori; }
+    public void setKategori(String kategori) { this.kategori = kategori; }
+
+    @Override
+    public String toString() { return namaMenu; }
+}
