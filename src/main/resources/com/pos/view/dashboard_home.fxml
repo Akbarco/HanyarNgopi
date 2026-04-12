@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<ScrollPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.pos.controller.DashboardHomeController"
+            fitToWidth="true"
+            style="-fx-background-color: transparent;
+                   -fx-background: transparent;
+                   -fx-border-color: transparent;">
+
+    <VBox spacing="24" style="-fx-background-color: #F1F5F9;">
+        <padding><Insets top="32" right="32" bottom="32" left="32"/></padding>
+
+        <!-- Header -->
+        <VBox spacing="4">
+            <Label text="Dashboard"
+                   style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #111827;"/>
+            <Label text="Ringkasan data bisnis Anda"
+                   style="-fx-font-size: 13; -fx-text-fill: #6B7280;"/>
+        </VBox>
+
+        <!-- Stats Cards -->
+        <HBox spacing="16">
+
+            <!-- Total Penjualan -->
+            <VBox HBox.hgrow="ALWAYS" spacing="12"
+                  style="-fx-background-color: white; -fx-background-radius: 16;
+                         -fx-border-color: #D1FAE5; -fx-border-radius: 16;
+                         -fx-border-width: 1.5;
+                         -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,2);">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <StackPane style="-fx-background-color: #D1FAE5;
+                                  -fx-background-radius: 12;
+                                  -fx-pref-width: 44; -fx-pref-height: 44;"
+                           maxWidth="44">
+                    <Label text="📈" style="-fx-font-size: 20;"/>
+                </StackPane>
+                <Label text="Total Penjualan"
+                       style="-fx-text-fill: #6B7280; -fx-font-size: 12;"/>
+                <Label fx:id="lblTotalPenjualan" text="Rp 0"
+                       style="-fx-font-size: 22; -fx-font-weight: bold;
+                              -fx-text-fill: #111827;"/>
+            </VBox>
+
+            <!-- Jumlah Transaksi -->
+            <VBox HBox.hgrow="ALWAYS" spacing="12"
+                  style="-fx-background-color: white; -fx-background-radius: 16;
+                         -fx-border-color: #DBEAFE; -fx-border-radius: 16;
+                         -fx-border-width: 1.5;
+                         -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,2);">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <StackPane style="-fx-background-color: #DBEAFE;
+                                  -fx-background-radius: 12;
+                                  -fx-pref-width: 44; -fx-pref-height: 44;"
+                           maxWidth="44">
+                    <Label text="🧾" style="-fx-font-size: 20;"/>
+                </StackPane>
+                <Label text="Jumlah Transaksi"
+                       style="-fx-text-fill: #6B7280; -fx-font-size: 12;"/>
+                <Label fx:id="lblJumlahTransaksi" text="0"
+                       style="-fx-font-size: 22; -fx-font-weight: bold;
+                              -fx-text-fill: #111827;"/>
+                <Label text="Transaksi"
+                       style="-fx-text-fill: #9CA3AF; -fx-font-size: 11;"/>
+            </VBox>
+
+            <!-- Hutang -->
+            <VBox HBox.hgrow="ALWAYS" spacing="12"
+                  style="-fx-background-color: white; -fx-background-radius: 16;
+                         -fx-border-color: #FEE2E2; -fx-border-radius: 16;
+                         -fx-border-width: 1.5;
+                         -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,2);">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <StackPane style="-fx-background-color: #FEE2E2;
+                                  -fx-background-radius: 12;
+                                  -fx-pref-width: 44; -fx-pref-height: 44;"
+                           maxWidth="44">
+                    <Label text="💸" style="-fx-font-size: 20;"/>
+                </StackPane>
+                <Label text="Hutang Belum Lunas"
+                       style="-fx-text-fill: #6B7280; -fx-font-size: 12;"/>
+                <Label fx:id="lblHutang" text="Rp 0"
+                       style="-fx-font-size: 22; -fx-font-weight: bold;
+                              -fx-text-fill: #DC2626;"/>
+            </VBox>
+
+            <!-- Piutang -->
+            <VBox HBox.hgrow="ALWAYS" spacing="12"
+                  style="-fx-background-color: white; -fx-background-radius: 16;
+                         -fx-border-color: #FEF3C7; -fx-border-radius: 16;
+                         -fx-border-width: 1.5;
+                         -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,2);">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <StackPane style="-fx-background-color: #FEF3C7;
+                                  -fx-background-radius: 12;
+                                  -fx-pref-width: 44; -fx-pref-height: 44;"
+                           maxWidth="44">
+                    <Label text="💰" style="-fx-font-size: 20;"/>
+                </StackPane>
+                <Label text="Piutang Belum Lunas"
+                       style="-fx-text-fill: #6B7280; -fx-font-size: 12;"/>
+                <Label fx:id="lblPiutang" text="Rp 0"
+                       style="-fx-font-size: 22; -fx-font-weight: bold;
+                              -fx-text-fill: #D97706;"/>
+            </VBox>
+
+        </HBox>
+
+        <!-- Bottom Section -->
+        <HBox spacing="16">
+
+            <!-- Peringatan Stok -->
+            <VBox HBox.hgrow="ALWAYS" spacing="12"
+                  style="-fx-background-color: #FFFBEB; -fx-background-radius: 16;
+                         -fx-border-color: #FDE68A; -fx-border-radius: 16;
+                         -fx-border-width: 1;">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <Label text="⚠ Peringatan Stok Menipis"
+                       style="-fx-text-fill: #D97706; -fx-font-size: 14;
+                              -fx-font-weight: bold;"/>
+                <Label fx:id="lblStokWarning" text="Tidak ada stok menipis"
+                       style="-fx-text-fill: #92400E; -fx-font-size: 12;"
+                       wrapText="true"/>
+            </VBox>
+
+            <!-- Transaksi Terbaru -->
+            <VBox HBox.hgrow="ALWAYS" spacing="12"
+                  style="-fx-background-color: white; -fx-background-radius: 16;
+                         -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,2);">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <Label text="Transaksi Terbaru"
+                       style="-fx-font-size: 15; -fx-font-weight: bold;
+                              -fx-text-fill: #111827;"/>
+                <Label fx:id="lblTransaksiBaru" text="Belum ada transaksi"
+                       style="-fx-text-fill: #9CA3AF; -fx-font-size: 12;"
+                       wrapText="true"/>
+            </VBox>
+
+        </HBox>
+
+    </VBox>
+</ScrollPane>

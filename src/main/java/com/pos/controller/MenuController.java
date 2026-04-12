@@ -31,15 +31,28 @@ public class MenuController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        setupColumns();
+        loadData();
+    }
+
+    private void setupColumns() {
+
+        // Nama
         colNama.setCellValueFactory(data ->
-                new javafx.beans.property.SimpleStringProperty(data.getValue().getNamaMenu()));
+                new javafx.beans.property.SimpleStringProperty(
+                        data.getValue().getNamaMenu()));
+
+        // Kategori
         colKategori.setCellValueFactory(data ->
                 new javafx.beans.property.SimpleStringProperty(
                         capitalize(data.getValue().getKategori())));
-        colHarga.setCellValueFactory(data ->
-                new javafx.beans.property.SimpleObjectProperty<>(data.getValue().getHarga()));
 
-        // Format harga kolom
+        // Harga
+        colHarga.setCellValueFactory(data ->
+                new javafx.beans.property.SimpleObjectProperty<>(
+                        data.getValue().getHarga()));
+
+        // 🔥 Format harga
         colHarga.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(Double item, boolean empty) {
@@ -53,32 +66,45 @@ public class MenuController implements Initializable {
             }
         });
 
-        // Format kategori badge
+        // 🔥 KATEGORI JADI PILL (INI YANG PENTING)
         colKategori.setCellFactory(col -> new TableCell<>() {
+
+            private final Label label = new Label();
+
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
+
                 if (empty || item == null) {
-                    setText(null);
-                    setStyle("");
+                    setGraphic(null);
                 } else {
-                    setText(item);
-                    setStyle("-fx-background-color: #EEF2FF; -fx-text-fill: #4F46E5; " +
-                            "-fx-background-radius: 20; -fx-padding: 2 10 2 10; -fx-font-weight: bold;");
+                    label.setText(item);
+
+                    // reset class biar gak numpuk
+                    label.getStyleClass().removeAll("pill", "pill-blue", "pill-green");
+
+                    if (item.equalsIgnoreCase("Makanan")) {
+                        label.getStyleClass().add("pill");
+                    } else if (item.equalsIgnoreCase("Minuman")) {
+                        label.getStyleClass().add("pill-blue");
+                    } else {
+                        label.getStyleClass().add("pill-green");
+                    }
+
+                    setGraphic(label);
                 }
             }
         });
 
-        // Kolom Aksi
+        // 🔥 Kolom Aksi (lebih clean + CSS)
         colAksi.setCellFactory(col -> new TableCell<>() {
-            private final Button btnEdit = new Button("Edit");
-            private final Button btnHapus = new Button("Hapus");
+
+            private final Button btnEdit = new Button("✏");
+            private final Button btnHapus = new Button("🗑");
 
             {
-                btnEdit.setStyle("-fx-background-color: transparent; -fx-text-fill: #4F46E5; " +
-                        "-fx-cursor: hand; -fx-font-weight: bold;");
-                btnHapus.setStyle("-fx-background-color: transparent; -fx-text-fill: #EF4444; " +
-                        "-fx-cursor: hand; -fx-font-weight: bold;");
+                btnEdit.getStyleClass().add("btn-edit");
+                btnHapus.getStyleClass().add("btn-delete");
 
                 btnEdit.setOnAction(e -> {
                     Menu menu = getTableView().getItems().get(getIndex());
@@ -88,8 +114,9 @@ public class MenuController implements Initializable {
                 btnHapus.setOnAction(e -> {
                     Menu menu = getTableView().getItems().get(getIndex());
                     if (AlertUtil.showConfirm("Hapus Menu",
-                            "Yakin hapus menu \"" + menu.getNamaMenu() + "\"?")) {
+                            "Yakin hapus \"" + menu.getNamaMenu() + "\"?")) {
                         menuDAO.delete(menu.getIdMenu());
+                        AlertUtil.showInfo("Sukses", "Menu berhasil dihapus!");
                         loadData();
                     }
                 });
@@ -107,8 +134,6 @@ public class MenuController implements Initializable {
                 }
             }
         });
-
-        loadData();
     }
 
     private void loadData() {
@@ -122,95 +147,46 @@ public class MenuController implements Initializable {
     }
 
     private void showTambahDialog() {
-        Stage dialog = new Stage();
-        dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle("Tambah Menu Baru");
+        Stage dialog = createDialog("Tambah Menu Baru");
 
-        VBox root = new VBox(16);
-        root.setPadding(new Insets(24));
-        root.setStyle("-fx-background-color: white;");
+        TextField txtNama = createTextField("Nama menu");
+        ComboBox<String> cmbKategori = createKategoriCombo();
+        TextField txtHarga = createTextField("Harga (Rp)");
 
-        Label title = new Label("Tambah Menu Baru");
-        title.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
+        Button btnBatal = createBtnBatal(dialog);
+        Button btnSimpan = new Button("Tambah");
+        btnSimpan.setStyle(btnPrimaryStyle());
 
-        TextField txtNama = new TextField();
-        txtNama.setPromptText("Nama menu");
-        txtNama.setStyle(inputStyle());
-
-        ComboBox<String> cmbKategori = new ComboBox<>();
-        cmbKategori.setItems(FXCollections.observableArrayList("makanan", "minuman", "stok"));
-        cmbKategori.setPromptText("Pilih kategori");
-        cmbKategori.setMaxWidth(Double.MAX_VALUE);
-        cmbKategori.setStyle(inputStyle());
-
-        TextField txtHarga = new TextField();
-        txtHarga.setPromptText("Harga (Rp)");
-        txtHarga.setStyle(inputStyle());
-
-        Button btnBatal = new Button("Batal");
-        btnBatal.setStyle("-fx-background-color: #F3F4F6; -fx-text-fill: #374151; " +
-                "-fx-background-radius: 8; -fx-cursor: hand; -fx-pref-height: 40; -fx-pref-width: 100;");
-        btnBatal.setOnAction(e -> dialog.close());
-
-        Button btnTambah = new Button("Tambah");
-        btnTambah.setStyle("-fx-background-color: #1A1A2E; -fx-text-fill: white; " +
-                "-fx-background-radius: 8; -fx-cursor: hand; -fx-pref-height: 40; -fx-pref-width: 100;");
-        btnTambah.setOnAction(e -> {
+        btnSimpan.setOnAction(e -> {
             if (validateAndSave(txtNama, cmbKategori, txtHarga, null)) {
                 dialog.close();
                 loadData();
             }
         });
 
-        HBox btnBox = new HBox(10, btnBatal, btnTambah);
-        btnBox.setAlignment(Pos.CENTER_RIGHT);
+        VBox root = buildDialogLayout(
+                "Tambah Menu Baru", txtNama, cmbKategori, txtHarga, btnBatal, btnSimpan);
 
-        root.getChildren().addAll(
-                title,
-                new Label("Nama Menu"), txtNama,
-                new Label("Kategori"), cmbKategori,
-                new Label("Harga (Rp)"), txtHarga,
-                btnBox
-        );
-
-        styleLabels(root);
-
-        dialog.setScene(new Scene(root, 480, 380));
+        dialog.setScene(new Scene(root, 460, 380));
         dialog.showAndWait();
     }
 
     private void showEditDialog(Menu menu) {
-        Stage dialog = new Stage();
-        dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle("Edit Menu");
+        Stage dialog = createDialog("Edit Menu");
 
-        VBox root = new VBox(16);
-        root.setPadding(new Insets(24));
-        root.setStyle("-fx-background-color: white;");
+        TextField txtNama = createTextField("Nama menu");
+        txtNama.setText(menu.getNamaMenu());
 
-        Label title = new Label("Edit Menu");
-        title.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
-
-        TextField txtNama = new TextField(menu.getNamaMenu());
-        txtNama.setStyle(inputStyle());
-
-        ComboBox<String> cmbKategori = new ComboBox<>();
-        cmbKategori.setItems(FXCollections.observableArrayList("makanan", "minuman", "stok"));
+        ComboBox<String> cmbKategori = createKategoriCombo();
         cmbKategori.setValue(menu.getKategori());
-        cmbKategori.setMaxWidth(Double.MAX_VALUE);
-        cmbKategori.setStyle(inputStyle());
 
-        TextField txtHarga = new TextField(String.valueOf((int) menu.getHarga()));
-        txtHarga.setStyle(inputStyle());
+        TextField txtHarga = createTextField("Harga (Rp)");
+        txtHarga.setText(String.valueOf((int) menu.getHarga()));
 
-        Button btnBatal = new Button("Batal");
-        btnBatal.setStyle("-fx-background-color: #F3F4F6; -fx-text-fill: #374151; " +
-                "-fx-background-radius: 8; -fx-cursor: hand; -fx-pref-height: 40; -fx-pref-width: 100;");
-        btnBatal.setOnAction(e -> dialog.close());
-
+        Button btnBatal = createBtnBatal(dialog);
         Button btnSimpan = new Button("Simpan");
-        btnSimpan.setStyle("-fx-background-color: #1A1A2E; -fx-text-fill: white; " +
-                "-fx-background-radius: 8; -fx-cursor: hand; -fx-pref-height: 40; -fx-pref-width: 100;");
+        btnSimpan.setStyle(btnPrimaryStyle());
+
         btnSimpan.setOnAction(e -> {
             if (validateAndSave(txtNama, cmbKategori, txtHarga, menu)) {
                 dialog.close();
@@ -218,25 +194,16 @@ public class MenuController implements Initializable {
             }
         });
 
-        HBox btnBox = new HBox(10, btnBatal, btnSimpan);
-        btnBox.setAlignment(Pos.CENTER_RIGHT);
+        VBox root = buildDialogLayout(
+                "Edit Menu", txtNama, cmbKategori, txtHarga, btnBatal, btnSimpan);
 
-        root.getChildren().addAll(
-                title,
-                new Label("Nama Menu"), txtNama,
-                new Label("Kategori"), cmbKategori,
-                new Label("Harga (Rp)"), txtHarga,
-                btnBox
-        );
-
-        styleLabels(root);
-
-        dialog.setScene(new Scene(root, 480, 380));
+        dialog.setScene(new Scene(root, 460, 380));
         dialog.showAndWait();
     }
 
     private boolean validateAndSave(TextField txtNama, ComboBox<String> cmbKategori,
                                     TextField txtHarga, Menu existing) {
+
         String nama = txtNama.getText().trim();
         String kategori = cmbKategori.getValue();
         String hargaStr = txtHarga.getText().trim();
@@ -265,19 +232,89 @@ public class MenuController implements Initializable {
             menuDAO.update(existing);
             AlertUtil.showInfo("Sukses", "Menu berhasil diupdate!");
         }
+
         return true;
     }
 
-    private String inputStyle() {
-        return "-fx-background-color: #F3F4F6; -fx-background-radius: 8; " +
-                "-fx-border-color: transparent; -fx-pref-height: 40; -fx-font-size: 13; -fx-padding: 0 12 0 12;";
+    // ===== HELPER =====
+
+    private Stage createDialog(String title) {
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.setTitle(title);
+        dialog.setResizable(false);
+        return dialog;
     }
 
-    private void styleLabels(VBox root) {
-        root.getChildren().stream()
-                .filter(n -> n instanceof Label && !((Label) n).getStyle().contains("font-size: 18"))
-                .forEach(n -> ((Label) n).setStyle(
-                        "-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #1A1A2E;"));
+    private TextField createTextField(String prompt) {
+        TextField tf = new TextField();
+        tf.setPromptText(prompt);
+        tf.setStyle(inputStyle());
+        return tf;
+    }
+
+    private ComboBox<String> createKategoriCombo() {
+        ComboBox<String> cmb = new ComboBox<>();
+        cmb.setItems(FXCollections.observableArrayList("makanan", "minuman", "snack"));
+        cmb.setPromptText("Pilih kategori");
+        cmb.setMaxWidth(Double.MAX_VALUE);
+        cmb.setStyle(inputStyle());
+        return cmb;
+    }
+
+    private Button createBtnBatal(Stage dialog) {
+        Button btn = new Button("Batal");
+        btn.setStyle(
+                "-fx-background-color: #F3F4F6; -fx-text-fill: #374151;" +
+                        "-fx-background-radius: 8; -fx-cursor: hand;" +
+                        "-fx-pref-height: 40; -fx-pref-width: 100;");
+        btn.setOnAction(e -> dialog.close());
+        return btn;
+    }
+
+    private VBox buildDialogLayout(String title, TextField txtNama,
+                                   ComboBox<String> cmbKategori, TextField txtHarga,
+                                   Button btnBatal, Button btnSimpan) {
+
+        VBox root = new VBox(12);
+        root.setPadding(new Insets(24));
+        root.setStyle("-fx-background-color: white;");
+
+        Label lblTitle = new Label(title);
+        lblTitle.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
+
+        Label lblNama = fieldLabel("Nama Menu");
+        Label lblKategori = fieldLabel("Kategori");
+        Label lblHarga = fieldLabel("Harga (Rp)");
+
+        HBox btnBox = new HBox(10, btnBatal, btnSimpan);
+        btnBox.setAlignment(Pos.CENTER_RIGHT);
+
+        root.getChildren().addAll(
+                lblTitle,
+                lblNama, txtNama,
+                lblKategori, cmbKategori,
+                lblHarga, txtHarga,
+                btnBox
+        );
+
+        return root;
+    }
+
+    private Label fieldLabel(String text) {
+        Label lbl = new Label(text);
+        lbl.setStyle("-fx-font-size: 13; -fx-font-weight: bold;");
+        return lbl;
+    }
+
+    private String inputStyle() {
+        return "-fx-background-color: #F3F4F6; -fx-background-radius: 8;" +
+                "-fx-pref-height: 40; -fx-padding: 0 12;";
+    }
+
+    private String btnPrimaryStyle() {
+        return "-fx-background-color: #1A1A2E; -fx-text-fill: white;" +
+                "-fx-background-radius: 8; -fx-pref-height: 40;";
     }
 
     private String capitalize(String s) {

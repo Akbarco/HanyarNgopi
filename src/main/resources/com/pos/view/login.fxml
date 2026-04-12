@@ -3,6 +3,8 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.pos.controller.LoginController"
@@ -11,9 +13,13 @@
 
     <VBox styleClass="card" alignment="TOP_CENTER" maxWidth="420" maxHeight="520">
 
-        <!-- Header purple -->
+        <!-- Header  -->
         <VBox styleClass="card-header" alignment="CENTER" prefHeight="100">
-            <Label text="🏪" styleClass="header-icon"/>
+            <ImageView fitWidth="60" fitHeight="60" preserveRatio="true">
+                <image>
+                    <Image url="@image/logo.jpeg"/>
+                </image>
+            </ImageView>
         </VBox>
 
         <!-- Body -->

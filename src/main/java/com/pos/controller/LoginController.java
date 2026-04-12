@@ -38,7 +38,7 @@ public class LoginController {
     private void openDashboard() {
         try {
             FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/pos/view/menu.fxml")
+                    getClass().getResource("/com/pos/view/dashboard.fxml")
             );
             Stage stage = (Stage) txtUsername.getScene().getWindow();
             Scene scene = new Scene(loader.load());

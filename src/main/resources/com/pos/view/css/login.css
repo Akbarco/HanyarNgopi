@@ -1,10 +1,10 @@
-/* ===== ROOT ===== */
+
 .root-pane {
     -fx-background-color: #E8EAF0;
     -fx-alignment: center;
 }
 
-/* ===== CARD ===== */
+
 .card {
     -fx-background-color: white;
     -fx-background-radius: 16;
@@ -13,7 +13,6 @@
     -fx-max-width: 560;
 }
 
-/* ===== HEADER ===== */
 .card-header {
     -fx-background-color: #5C6BC0;
     -fx-background-radius: 16 16 0 0;
@@ -26,12 +25,12 @@
     -fx-font-size: 36;
 }
 
-/* ===== BODY ===== */
+
 .card-body {
     -fx-padding: 32 48 48 48;
 }
 
-/* ===== TYPOGRAPHY ===== */
+
 .title {
     -fx-font-size: 20;
     -fx-font-weight: bold;
@@ -50,7 +49,7 @@
     -fx-text-fill: #1A1A2E;
 }
 
-/* ===== INPUT ===== */
+
 .input-field {
     -fx-background-color: #F3F4F6;
     -fx-background-radius: 10;
@@ -71,7 +70,7 @@
     -fx-border-radius: 10;
 }
 
-/* ===== BUTTON ===== */
+
 .btn-login {
     -fx-background-color: #1A1A2E;
     -fx-text-fill: white;
