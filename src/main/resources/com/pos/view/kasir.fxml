@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.pos.controller.KasirController"
+      stylesheets="@../css/menu.css"
+      spacing="24"
+      style="-fx-background-color: #F1F5F9;">
+    <padding><Insets top="32" right="32" bottom="32" left="32"/></padding>
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT">
+        <VBox HBox.hgrow="ALWAYS" spacing="4">
+            <Label text="Kelola Transaksi"
+                   style="-fx-font-size: 28; -fx-font-weight: bold;
+                          -fx-text-fill: #111827;"/>
+            <Label text="Catat transaksi penjualan"
+                   style="-fx-font-size: 13; -fx-text-fill: #6B7280;"/>
+        </VBox>
+        <Button text="+ Transaksi Baru" onAction="#handleTransaksiBaru"
+                style="-fx-background-color: #111827; -fx-text-fill: white;
+                       -fx-font-weight: bold; -fx-font-size: 13;
+                       -fx-background-radius: 10; -fx-cursor: hand;
+                       -fx-pref-height: 44; -fx-padding: 0 24 0 24;"/>
+    </HBox>
+
+    <!-- Riwayat Card -->
+    <VBox VBox.vgrow="ALWAYS"
+          style="-fx-background-color: white; -fx-background-radius: 16;
+                 -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.07),16,0,0,4);">
+        <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+
+        <Label text="Riwayat Transaksi"
+               style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #111827;">
+            <VBox.margin><Insets bottom="16"/></VBox.margin>
+        </Label>
+
+        <ScrollPane fx:id="scrollRiwayat" fitToWidth="true" VBox.vgrow="ALWAYS"
+                    style="-fx-background-color: transparent;
+                           -fx-background: transparent;
+                           -fx-border-color: transparent;">
+            <VBox fx:id="containerRiwayat" spacing="12"
+                  style="-fx-background-color: transparent;">
+                <padding><Insets right="8"/></padding>
+            </VBox>
+        </ScrollPane>
+    </VBox>
+</VBox>

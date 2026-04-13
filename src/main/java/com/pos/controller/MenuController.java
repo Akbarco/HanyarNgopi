@@ -36,29 +36,26 @@ public class MenuController implements Initializable {
     }
 
     private void setupColumns() {
-
-        // Nama
         colNama.setCellValueFactory(data ->
                 new javafx.beans.property.SimpleStringProperty(
                         data.getValue().getNamaMenu()));
 
-        // Kategori
         colKategori.setCellValueFactory(data ->
                 new javafx.beans.property.SimpleStringProperty(
                         capitalize(data.getValue().getKategori())));
 
-        // Harga
         colHarga.setCellValueFactory(data ->
                 new javafx.beans.property.SimpleObjectProperty<>(
                         data.getValue().getHarga()));
 
-        // 🔥 Format harga
+        // Format harga
         colHarga.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(Double item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText(null);
+                    setStyle("");
                 } else {
                     setText("Rp " + String.format("%,.0f", item));
                     setStyle("-fx-text-fill: #16A34A; -fx-font-weight: bold;");
@@ -66,45 +63,54 @@ public class MenuController implements Initializable {
             }
         });
 
-        // 🔥 KATEGORI JADI PILL (INI YANG PENTING)
+        // Badge kategori
         colKategori.setCellFactory(col -> new TableCell<>() {
-
-            private final Label label = new Label();
-
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-
+                setText(null);
                 if (empty || item == null) {
                     setGraphic(null);
-                } else {
-                    label.setText(item);
-
-                    // reset class biar gak numpuk
-                    label.getStyleClass().removeAll("pill", "pill-blue", "pill-green");
-
-                    if (item.equalsIgnoreCase("Makanan")) {
-                        label.getStyleClass().add("pill");
-                    } else if (item.equalsIgnoreCase("Minuman")) {
-                        label.getStyleClass().add("pill-blue");
-                    } else {
-                        label.getStyleClass().add("pill-green");
-                    }
-
-                    setGraphic(label);
+                    return;
                 }
+                Label badge = new Label(item);
+                String bg, fg;
+                switch (item.toLowerCase()) {
+                    case "makanan" -> { bg = "#EEF2FF"; fg = "#4F46E5"; }
+                    case "minuman" -> { bg = "#DBEAFE"; fg = "#2563EB"; }
+                    default ->        { bg = "#F0FDF4"; fg = "#16A34A"; }
+                }
+                badge.setStyle(
+                        "-fx-background-color: " + bg + ";" +
+                                "-fx-text-fill: " + fg + ";" +
+                                "-fx-background-radius: 20;" +
+                                "-fx-padding: 4 14 4 14;" +
+                                "-fx-font-size: 11;" +
+                                "-fx-font-weight: bold;"
+                );
+                setGraphic(badge);
             }
         });
 
-        // 🔥 Kolom Aksi (lebih clean + CSS)
+        // Kolom aksi
         colAksi.setCellFactory(col -> new TableCell<>() {
-
-            private final Button btnEdit = new Button("✏");
-            private final Button btnHapus = new Button("🗑");
+            private final Button btnEdit = new Button("✏  Edit");
+            private final Button btnHapus = new Button("🗑  Hapus");
 
             {
-                btnEdit.getStyleClass().add("btn-edit");
-                btnHapus.getStyleClass().add("btn-delete");
+                btnEdit.setStyle(
+                        "-fx-background-color: transparent;" +
+                                "-fx-text-fill: #4F46E5;" +
+                                "-fx-cursor: hand;" +
+                                "-fx-font-size: 13;" +
+                                "-fx-font-weight: bold;");
+
+                btnHapus.setStyle(
+                        "-fx-background-color: transparent;" +
+                                "-fx-text-fill: #EF4444;" +
+                                "-fx-cursor: hand;" +
+                                "-fx-font-size: 13;" +
+                                "-fx-font-weight: bold;");
 
                 btnEdit.setOnAction(e -> {
                     Menu menu = getTableView().getItems().get(getIndex());
@@ -128,9 +134,10 @@ public class MenuController implements Initializable {
                 if (empty) {
                     setGraphic(null);
                 } else {
-                    HBox box = new HBox(8, btnEdit, btnHapus);
+                    HBox box = new HBox(4, btnEdit, btnHapus);
                     box.setAlignment(Pos.CENTER_RIGHT);
                     setGraphic(box);
+                    setAlignment(Pos.CENTER_RIGHT);
                 }
             }
         });
@@ -156,7 +163,6 @@ public class MenuController implements Initializable {
         Button btnBatal = createBtnBatal(dialog);
         Button btnSimpan = new Button("Tambah");
         btnSimpan.setStyle(btnPrimaryStyle());
-
         btnSimpan.setOnAction(e -> {
             if (validateAndSave(txtNama, cmbKategori, txtHarga, null)) {
                 dialog.close();
@@ -166,7 +172,6 @@ public class MenuController implements Initializable {
 
         VBox root = buildDialogLayout(
                 "Tambah Menu Baru", txtNama, cmbKategori, txtHarga, btnBatal, btnSimpan);
-
         dialog.setScene(new Scene(root, 460, 380));
         dialog.showAndWait();
     }
@@ -186,7 +191,6 @@ public class MenuController implements Initializable {
         Button btnBatal = createBtnBatal(dialog);
         Button btnSimpan = new Button("Simpan");
         btnSimpan.setStyle(btnPrimaryStyle());
-
         btnSimpan.setOnAction(e -> {
             if (validateAndSave(txtNama, cmbKategori, txtHarga, menu)) {
                 dialog.close();
@@ -196,14 +200,12 @@ public class MenuController implements Initializable {
 
         VBox root = buildDialogLayout(
                 "Edit Menu", txtNama, cmbKategori, txtHarga, btnBatal, btnSimpan);
-
         dialog.setScene(new Scene(root, 460, 380));
         dialog.showAndWait();
     }
 
     private boolean validateAndSave(TextField txtNama, ComboBox<String> cmbKategori,
                                     TextField txtHarga, Menu existing) {
-
         String nama = txtNama.getText().trim();
         String kategori = cmbKategori.getValue();
         String hargaStr = txtHarga.getText().trim();
@@ -232,11 +234,10 @@ public class MenuController implements Initializable {
             menuDAO.update(existing);
             AlertUtil.showInfo("Sukses", "Menu berhasil diupdate!");
         }
-
         return true;
     }
 
-    // ===== HELPER =====
+    // ===== HELPERS =====
 
     private Stage createDialog(String title) {
         Stage dialog = new Stage();
@@ -275,46 +276,44 @@ public class MenuController implements Initializable {
     private VBox buildDialogLayout(String title, TextField txtNama,
                                    ComboBox<String> cmbKategori, TextField txtHarga,
                                    Button btnBatal, Button btnSimpan) {
-
         VBox root = new VBox(12);
         root.setPadding(new Insets(24));
         root.setStyle("-fx-background-color: white;");
 
         Label lblTitle = new Label(title);
-        lblTitle.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
-
-        Label lblNama = fieldLabel("Nama Menu");
-        Label lblKategori = fieldLabel("Kategori");
-        Label lblHarga = fieldLabel("Harga (Rp)");
+        lblTitle.setStyle(
+                "-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1A1A2E;");
 
         HBox btnBox = new HBox(10, btnBatal, btnSimpan);
         btnBox.setAlignment(Pos.CENTER_RIGHT);
 
         root.getChildren().addAll(
                 lblTitle,
-                lblNama, txtNama,
-                lblKategori, cmbKategori,
-                lblHarga, txtHarga,
+                fieldLabel("Nama Menu"), txtNama,
+                fieldLabel("Kategori"), cmbKategori,
+                fieldLabel("Harga (Rp)"), txtHarga,
                 btnBox
         );
-
         return root;
     }
 
     private Label fieldLabel(String text) {
         Label lbl = new Label(text);
-        lbl.setStyle("-fx-font-size: 13; -fx-font-weight: bold;");
+        lbl.setStyle(
+                "-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #1A1A2E;");
         return lbl;
     }
 
     private String inputStyle() {
         return "-fx-background-color: #F3F4F6; -fx-background-radius: 8;" +
-                "-fx-pref-height: 40; -fx-padding: 0 12;";
+                "-fx-border-color: transparent; -fx-pref-height: 40;" +
+                "-fx-font-size: 13; -fx-padding: 0 12 0 12;";
     }
 
     private String btnPrimaryStyle() {
         return "-fx-background-color: #1A1A2E; -fx-text-fill: white;" +
-                "-fx-background-radius: 8; -fx-pref-height: 40;";
+                "-fx-background-radius: 8; -fx-cursor: hand;" +
+                "-fx-pref-height: 40; -fx-pref-width: 100;";
     }
 
     private String capitalize(String s) {

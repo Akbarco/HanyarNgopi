@@ -1,64 +1,72 @@
-/* Wrapper biar ada jarak dalam */
-.table-wrapper {
-    -fx-padding: 8 4 0 4;
-}
-
-/* Table base */
 .table-view {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
-    -fx-background-insets: 0;
     -fx-padding: 0;
+    -fx-background-insets: 0;
 }
 
-/* Header background */
 .table-view .column-header-background {
     -fx-background-color: #F9FAFB;
     -fx-border-color: transparent transparent #E5E7EB transparent;
+    -fx-border-width: 0 0 1 0;
 }
 
-/* Header */
 .table-view .column-header {
     -fx-background-color: transparent;
-    -fx-size: 44;
+    -fx-border-color: transparent;
+    -fx-size: 48;
 }
 
 .table-view .column-header .label {
-    -fx-font-size: 13;
     -fx-font-weight: bold;
-    -fx-text-fill: #374151;
+    -fx-text-fill: #6B7280;
+    -fx-font-size: 12;
     -fx-alignment: CENTER-LEFT;
     -fx-padding: 0 0 0 8;
 }
 
-/* Cell */
 .table-view .table-cell {
     -fx-border-color: transparent;
-    -fx-padding: 0 8;
+    -fx-padding: 0 8 0 8;
     -fx-font-size: 13;
-    -fx-text-fill: #111827;
+    -fx-text-fill: #1A1A2E;
     -fx-alignment: CENTER-LEFT;
 }
 
-/* Row */
+.table-view .filler {
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: transparent;
+}
+
 .table-row-cell {
     -fx-background-color: white;
-    -fx-border-color: transparent transparent #F1F5F9 transparent;
+    -fx-border-color: transparent transparent #F3F4F6 transparent;
     -fx-border-width: 0 0 1 0;
-    -fx-cell-size: 44;
+    -fx-cell-size: 52px;
 }
 
-/* Hover */
+.table-row-cell:empty {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.table-row-cell:empty .table-cell {
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
+}
+
 .table-row-cell:hover {
-    -fx-background-color: #F8FAFF;
+    -fx-background-color: #F5F7FF;
 }
 
-/* Selected */
 .table-row-cell:selected {
     -fx-background-color: #EEF2FF;
 }
 
-/* Scrollbar */
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: #1A1A2E;
+}
+
 .scroll-bar:vertical {
     -fx-pref-width: 6;
     -fx-background-color: transparent;
@@ -73,53 +81,9 @@
     -fx-background-color: transparent;
 }
 
-/* 🔥 PILL (Kategori) */
-.pill {
-    -fx-background-color: #EEF2FF;
-    -fx-text-fill: #4F46E5;
-    -fx-padding: 4 12;
-    -fx-background-radius: 999;
-    -fx-font-size: 12;
-    -fx-font-weight: bold;
-}
-
-.pill-blue {
-    -fx-background-color: #DBEAFE;
-    -fx-text-fill: #2563EB;
-    -fx-padding: 4 12;
-    -fx-background-radius: 999;
-    -fx-font-weight: bold;
-}
-
-.pill-green {
-    -fx-background-color: #DCFCE7;
-    -fx-text-fill: #16A34A;
-    -fx-padding: 4 12;
-    -fx-background-radius: 999;
-    -fx-font-weight: bold;
-}
-
-/* Button Edit */
-.btn-edit {
-    -fx-background-color: #F9FAFB;
-    -fx-text-fill: #374151;
-    -fx-background-radius: 8;
-    -fx-cursor: hand;
-    -fx-padding: 4 10;
-}
-
-.btn-edit:hover {
-    -fx-background-color: #E5E7EB;
-}
-
-.btn-delete {
-    -fx-background-color: #FEF2F2;
-    -fx-text-fill: #DC2626;
-    -fx-background-radius: 8;
-    -fx-cursor: hand;
-    -fx-padding: 4 10;
-}
-
-.btn-delete:hover {
-    -fx-background-color: #FEE2E2;
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-pref-height: 0;
+    -fx-pref-width: 0;
 }

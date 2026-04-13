@@ -37,6 +37,7 @@ public class initDatabase {
                     id_menu INT,
                     jumlah_stok INT,
                     satuan ENUM('kg','g','liter','ml','pcs','box','sachet','botol'),
+                    stok_minimum INT DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (id_menu) REFERENCES menus(id_menu)
                 )
@@ -94,10 +95,10 @@ public class initDatabase {
                 )
             """);
 
-            System.out.println("🔥 Database + ENUM berhasil dibuat!");
+            System.out.println("Database + ENUM berhasil dibuat!");
 
         } catch (Exception e) {
-            System.out.println("❌ Error: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
     }
 }

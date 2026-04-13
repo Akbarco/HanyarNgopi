@@ -13,7 +13,7 @@
 
     <VBox styleClass="card" alignment="TOP_CENTER" maxWidth="420" maxHeight="520">
 
-        <!-- Header  -->
+
         <VBox styleClass="card-header" alignment="CENTER" prefHeight="100">
             <ImageView fitWidth="60" fitHeight="60" preserveRatio="true">
                 <image>
@@ -22,7 +22,7 @@
             </ImageView>
         </VBox>
 
-        <!-- Body -->
+
         <VBox styleClass="card-body" spacing="6">
 
             <Label text="Sistem Manajemen Cafe HanyarNgopi" styleClass="title"/>
