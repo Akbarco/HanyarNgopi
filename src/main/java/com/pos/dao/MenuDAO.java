@@ -12,7 +12,11 @@ public class MenuDAO {
     public List<Menu> findAll() {
         List<Menu> list = new ArrayList<>();
         String sql = "SELECT * FROM menus ORDER BY kategori, nama_menu";
-        try (Connection conn = koneksi.getConnection();
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return list;
+        }
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) list.add(mapRow(rs));
@@ -24,10 +28,14 @@ public class MenuDAO {
 
     public void insert(Menu menu) {
         String sql = "INSERT INTO menus (nama_menu, harga, kategori) VALUES (?, ?, ?)";
-        try (Connection conn = koneksi.getConnection();
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return;
+        }
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, menu.getNamaMenu());
-            ps.setDouble(2, menu.getHarga());
+            ps.setInt(2, (int) Math.round(menu.getHarga()));
             ps.setString(3, menu.getKategori());
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -37,10 +45,14 @@ public class MenuDAO {
 
     public void update(Menu menu) {
         String sql = "UPDATE menus SET nama_menu=?, harga=?, kategori=? WHERE id_menu=?";
-        try (Connection conn = koneksi.getConnection();
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return;
+        }
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, menu.getNamaMenu());
-            ps.setDouble(2, menu.getHarga());
+            ps.setInt(2, (int) Math.round(menu.getHarga()));
             ps.setString(3, menu.getKategori());
             ps.setInt(4, menu.getIdMenu());
             ps.executeUpdate();
@@ -51,7 +63,11 @@ public class MenuDAO {
 
     public void delete(int idMenu) {
         String sql = "DELETE FROM menus WHERE id_menu=?";
-        try (Connection conn = koneksi.getConnection();
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return;
+        }
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idMenu);
             ps.executeUpdate();

@@ -1,145 +1,164 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
 
 <ScrollPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.pos.controller.DashboardHomeController"
             fitToWidth="true"
-            style="-fx-background-color: transparent;
-                   -fx-background: transparent;
-                   -fx-border-color: transparent;">
+            styleClass="dashboard-scroll">
 
-    <VBox spacing="24" style="-fx-background-color: #F1F5F9;">
+    <VBox spacing="24" styleClass="dashboard-page">
         <padding><Insets top="32" right="32" bottom="32" left="32"/></padding>
 
-        <!-- Header -->
         <VBox spacing="4">
-            <Label text="Dashboard"
-                   style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #111827;"/>
-            <Label text="Ringkasan data bisnis Anda"
-                   style="-fx-font-size: 13; -fx-text-fill: #6B7280;"/>
+            <Label text="Dashboard" styleClass="dashboard-section-title"/>
+            <Label text="Ringkasan data bisnis Anda" styleClass="dashboard-section-subtitle"/>
         </VBox>
 
-        <!-- Stats Cards -->
-        <HBox spacing="16">
-
-            <!-- Total Penjualan -->
-            <VBox HBox.hgrow="ALWAYS" spacing="12"
-                  style="-fx-background-color: white; -fx-background-radius: 16;
-                         -fx-border-color: #D1FAE5; -fx-border-radius: 16;
-                         -fx-border-width: 1.5;
-                         -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,2);">
+        <FlowPane hgap="16" vgap="16" prefWrapLength="1200" styleClass="metric-grid">
+            <VBox minWidth="240" prefWidth="260" maxWidth="1.0E9" spacing="12">
+                <styleClass>
+                    <String fx:value="metric-card"/>
+                    <String fx:value="metric-card-green"/>
+                </styleClass>
                 <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                <StackPane style="-fx-background-color: #D1FAE5;
-                                  -fx-background-radius: 12;
-                                  -fx-pref-width: 44; -fx-pref-height: 44;"
-                           maxWidth="44">
-                    <Label text="📈" style="-fx-font-size: 20;"/>
-                </StackPane>
-                <Label text="Total Penjualan"
-                       style="-fx-text-fill: #6B7280; -fx-font-size: 12;"/>
-                <Label fx:id="lblTotalPenjualan" text="Rp 0"
-                       style="-fx-font-size: 22; -fx-font-weight: bold;
-                              -fx-text-fill: #111827;"/>
+                <HBox alignment="TOP_LEFT" spacing="10">
+                    <StackPane>
+                        <styleClass>
+                            <String fx:value="metric-icon-shell"/>
+                            <String fx:value="metric-icon-shell-green"/>
+                        </styleClass>
+                        <SVGPath content="M4 16 L10 10 L14 14 L21 7 M15 7 H21 V13"
+                                 styleClass="metric-svg-green"/>
+                    </StackPane>
+                </HBox>
+                <Label text="Total Penjualan" styleClass="metric-label"/>
+                <Label fx:id="lblTotalPenjualan" text="Rp 0" styleClass="metric-value"/>
             </VBox>
 
-            <!-- Jumlah Transaksi -->
-            <VBox HBox.hgrow="ALWAYS" spacing="12"
-                  style="-fx-background-color: white; -fx-background-radius: 16;
-                         -fx-border-color: #DBEAFE; -fx-border-radius: 16;
-                         -fx-border-width: 1.5;
-                         -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,2);">
+            <VBox minWidth="240" prefWidth="260" maxWidth="1.0E9" spacing="12">
+                <styleClass>
+                    <String fx:value="metric-card"/>
+                    <String fx:value="metric-card-blue"/>
+                </styleClass>
                 <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                <StackPane style="-fx-background-color: #DBEAFE;
-                                  -fx-background-radius: 12;
-                                  -fx-pref-width: 44; -fx-pref-height: 44;"
-                           maxWidth="44">
-                    <Label text="🧾" style="-fx-font-size: 20;"/>
-                </StackPane>
-                <Label text="Jumlah Transaksi"
-                       style="-fx-text-fill: #6B7280; -fx-font-size: 12;"/>
-                <Label fx:id="lblJumlahTransaksi" text="0"
-                       style="-fx-font-size: 22; -fx-font-weight: bold;
-                              -fx-text-fill: #111827;"/>
-                <Label text="Transaksi"
-                       style="-fx-text-fill: #9CA3AF; -fx-font-size: 11;"/>
+                <HBox alignment="TOP_LEFT" spacing="10">
+                    <StackPane>
+                        <styleClass>
+                            <String fx:value="metric-icon-shell"/>
+                            <String fx:value="metric-icon-shell-blue"/>
+                        </styleClass>
+                        <SVGPath content="M7 3 H17 L21 7 V21 L18 19 L15 21 L12 19 L9 21 L6 19 L3 21 V7 Z M8 8 H16 M8 12 H16 M8 16 H13"
+                                 styleClass="metric-svg-blue"/>
+                    </StackPane>
+                </HBox>
+                <Label text="Jumlah Transaksi" styleClass="metric-label"/>
+                <Label fx:id="lblJumlahTransaksi" text="0" styleClass="metric-value"/>
+                <Label text="Transaksi" styleClass="metric-caption"/>
             </VBox>
 
-            <!-- Hutang -->
-            <VBox HBox.hgrow="ALWAYS" spacing="12"
-                  style="-fx-background-color: white; -fx-background-radius: 16;
-                         -fx-border-color: #FEE2E2; -fx-border-radius: 16;
-                         -fx-border-width: 1.5;
-                         -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,2);">
+            <VBox minWidth="240" prefWidth="260" maxWidth="1.0E9" spacing="12">
+                <styleClass>
+                    <String fx:value="metric-card"/>
+                    <String fx:value="metric-card-red"/>
+                </styleClass>
                 <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                <StackPane style="-fx-background-color: #FEE2E2;
-                                  -fx-background-radius: 12;
-                                  -fx-pref-width: 44; -fx-pref-height: 44;"
-                           maxWidth="44">
-                    <Label text="💸" style="-fx-font-size: 20;"/>
-                </StackPane>
-                <Label text="Hutang Belum Lunas"
-                       style="-fx-text-fill: #6B7280; -fx-font-size: 12;"/>
-                <Label fx:id="lblHutang" text="Rp 0"
-                       style="-fx-font-size: 22; -fx-font-weight: bold;
-                              -fx-text-fill: #DC2626;"/>
+                <HBox alignment="TOP_LEFT" spacing="10">
+                    <StackPane>
+                        <styleClass>
+                            <String fx:value="metric-icon-shell"/>
+                            <String fx:value="metric-icon-shell-red"/>
+                        </styleClass>
+                        <SVGPath content="M4 7 H20 V17 H4 Z M4 10 H20 M16 14 H19 M7 14 H11"
+                                 styleClass="metric-svg-red"/>
+                    </StackPane>
+                </HBox>
+                <Label text="Hutang Belum Lunas" styleClass="metric-label"/>
+                <Label fx:id="lblHutang" text="Rp 0">
+                    <styleClass>
+                        <String fx:value="metric-value"/>
+                        <String fx:value="metric-value-red"/>
+                    </styleClass>
+                </Label>
             </VBox>
 
-            <!-- Piutang -->
-            <VBox HBox.hgrow="ALWAYS" spacing="12"
-                  style="-fx-background-color: white; -fx-background-radius: 16;
-                         -fx-border-color: #FEF3C7; -fx-border-radius: 16;
-                         -fx-border-width: 1.5;
-                         -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,2);">
+            <VBox minWidth="240" prefWidth="260" maxWidth="1.0E9" spacing="12">
+                <styleClass>
+                    <String fx:value="metric-card"/>
+                    <String fx:value="metric-card-orange"/>
+                </styleClass>
                 <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                <StackPane style="-fx-background-color: #FEF3C7;
-                                  -fx-background-radius: 12;
-                                  -fx-pref-width: 44; -fx-pref-height: 44;"
-                           maxWidth="44">
-                    <Label text="💰" style="-fx-font-size: 20;"/>
-                </StackPane>
-                <Label text="Piutang Belum Lunas"
-                       style="-fx-text-fill: #6B7280; -fx-font-size: 12;"/>
-                <Label fx:id="lblPiutang" text="Rp 0"
-                       style="-fx-font-size: 22; -fx-font-weight: bold;
-                              -fx-text-fill: #D97706;"/>
+                <HBox alignment="TOP_LEFT" spacing="10">
+                    <StackPane>
+                        <styleClass>
+                            <String fx:value="metric-icon-shell"/>
+                            <String fx:value="metric-icon-shell-orange"/>
+                        </styleClass>
+                        <SVGPath content="M4 7 H20 V17 H4 Z M4 10 H20 M16 14 H19 M7 14 H12"
+                                 styleClass="metric-svg-orange"/>
+                    </StackPane>
+                </HBox>
+                <Label text="Piutang Belum Lunas" styleClass="metric-label"/>
+                <Label fx:id="lblPiutang" text="Rp 0">
+                    <styleClass>
+                        <String fx:value="metric-value"/>
+                        <String fx:value="metric-value-orange"/>
+                    </styleClass>
+                </Label>
+            </VBox>
+        </FlowPane>
+
+        <HBox spacing="20" alignment="TOP_LEFT">
+            <VBox HBox.hgrow="ALWAYS" minWidth="360" spacing="14">
+                <styleClass>
+                    <String fx:value="panel-card"/>
+                    <String fx:value="panel-warning-card"/>
+                </styleClass>
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Peringatan Stok Menipis" styleClass="panel-warning-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <StackPane>
+                        <styleClass>
+                            <String fx:value="panel-top-icon"/>
+                            <String fx:value="panel-top-icon-warning"/>
+                        </styleClass>
+                        <SVGPath content="M12 4 L21 20 H3 Z M12 9 V14 M12 17 H12.01"
+                                 styleClass="panel-svg-warning"/>
+                    </StackPane>
+                </HBox>
+                <VBox fx:id="containerStokWarning" spacing="12" VBox.vgrow="ALWAYS"/>
             </VBox>
 
+            <VBox HBox.hgrow="ALWAYS" minWidth="420" spacing="14">
+                <styleClass>
+                    <String fx:value="panel-card"/>
+                    <String fx:value="panel-transaction-card"/>
+                </styleClass>
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Transaksi Terbaru" styleClass="panel-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <StackPane>
+                        <styleClass>
+                            <String fx:value="panel-top-icon"/>
+                            <String fx:value="panel-top-icon-transaction"/>
+                        </styleClass>
+                        <SVGPath content="M7 3 H17 L21 7 V21 L18 19 L15 21 L12 19 L9 21 L6 19 L3 21 V7 Z M8 9 H16 M8 13 H16 M8 17 H13"
+                                 styleClass="panel-svg-transaction"/>
+                    </StackPane>
+                </HBox>
+                <VBox fx:id="containerTransaksiBaru" spacing="12" VBox.vgrow="ALWAYS"/>
+            </VBox>
         </HBox>
-
-        <!-- Bottom Section -->
-        <HBox spacing="16">
-
-            <!-- Peringatan Stok -->
-            <VBox HBox.hgrow="ALWAYS" spacing="12"
-                  style="-fx-background-color: #FFFBEB; -fx-background-radius: 16;
-                         -fx-border-color: #FDE68A; -fx-border-radius: 16;
-                         -fx-border-width: 1;">
-                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                <Label text="⚠ Peringatan Stok Menipis"
-                       style="-fx-text-fill: #D97706; -fx-font-size: 14;
-                              -fx-font-weight: bold;"/>
-                <Label fx:id="lblStokWarning" text="Tidak ada stok menipis"
-                       style="-fx-text-fill: #92400E; -fx-font-size: 12;"
-                       wrapText="true"/>
-            </VBox>
-
-            <!-- Transaksi Terbaru -->
-            <VBox HBox.hgrow="ALWAYS" spacing="12"
-                  style="-fx-background-color: white; -fx-background-radius: 16;
-                         -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.05),10,0,0,2);">
-                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                <Label text="Transaksi Terbaru"
-                       style="-fx-font-size: 15; -fx-font-weight: bold;
-                              -fx-text-fill: #111827;"/>
-                <Label fx:id="lblTransaksiBaru" text="Belum ada transaksi"
-                       style="-fx-text-fill: #9CA3AF; -fx-font-size: 12;"
-                       wrapText="true"/>
-            </VBox>
-
-        </HBox>
-
     </VBox>
 </ScrollPane>

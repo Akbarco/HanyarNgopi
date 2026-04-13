@@ -23,7 +23,12 @@ public class DebtDAO {
                      created_at DESC
             """;
 
-        try (Connection conn = koneksi.getConnection();
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return list;
+        }
+
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tipe);
             ResultSet rs = ps.executeQuery();
@@ -43,11 +48,16 @@ public class DebtDAO {
             VALUES (?, ?, ?, ?, ?, ?)
             """;
 
-        try (Connection conn = koneksi.getConnection();
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return;
+        }
+
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, debt.getNama());
             ps.setString(2, debt.getTipe());
-            ps.setDouble(3, debt.getNominal());
+            ps.setInt(3, (int) Math.round(debt.getNominal()));
             ps.setDate(4, Date.valueOf(debt.getTanggal()));
             ps.setString(5, debt.getStatus());
             ps.setString(6, debt.getKeterangan());
@@ -62,6 +72,10 @@ public class DebtDAO {
         String deleteDebtSql = "DELETE FROM debts WHERE id_debt = ?";
 
         try (Connection conn = koneksi.getConnection()) {
+            if (conn == null) {
+                return;
+            }
+
             conn.setAutoCommit(false);
             try (PreparedStatement psPayment = conn.prepareStatement(deletePaymentSql);
                  PreparedStatement psDebt = conn.prepareStatement(deleteDebtSql)) {
@@ -91,6 +105,10 @@ public class DebtDAO {
             """;
 
         try (Connection conn = koneksi.getConnection()) {
+            if (conn == null) {
+                return;
+            }
+
             conn.setAutoCommit(false);
             try (PreparedStatement psDebt = conn.prepareStatement(updateDebtSql);
                  PreparedStatement psPayment = conn.prepareStatement(insertPaymentSql)) {
@@ -98,7 +116,7 @@ public class DebtDAO {
                 psDebt.executeUpdate();
 
                 psPayment.setInt(1, debt.getIdDebt());
-                psPayment.setDouble(2, debt.getNominal());
+                psPayment.setInt(2, (int) Math.round(debt.getNominal()));
                 psPayment.executeUpdate();
 
                 conn.commit();
@@ -120,7 +138,12 @@ public class DebtDAO {
             WHERE tipe = ? AND status = 'belum'
             """;
 
-        try (Connection conn = koneksi.getConnection();
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return 0;
+        }
+
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tipe);
             ResultSet rs = ps.executeQuery();
@@ -141,7 +164,12 @@ public class DebtDAO {
             WHERE tipe = ? AND status = 'belum'
             """;
 
-        try (Connection conn = koneksi.getConnection();
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return 0;
+        }
+
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tipe);
             ResultSet rs = ps.executeQuery();

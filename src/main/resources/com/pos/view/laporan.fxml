@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
+<ScrollPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.pos.controller.LaporanController"
+            fitToWidth="true"
+            stylesheets="@css/menu.css"
+            styleClass="report-scroll">
+
+    <VBox spacing="24" styleClass="report-page">
+        <padding><Insets top="32" right="32" bottom="32" left="32"/></padding>
+
+        <VBox spacing="4">
+            <Label text="Laporan" styleClass="page-header-title"/>
+            <Label text="Ringkasan dan analisis bisnis" styleClass="page-header-subtitle"/>
+        </VBox>
+
+        <FlowPane hgap="24" vgap="16" styleClass="report-filter-card">
+            <VBox spacing="10" prefWidth="280">
+                <Label text="Tanggal Mulai" styleClass="form-label"/>
+                <DatePicker fx:id="dpMulai" maxWidth="Infinity">
+                    <styleClass>
+                        <String fx:value="date-input"/>
+                        <String fx:value="report-date-input"/>
+                    </styleClass>
+                </DatePicker>
+            </VBox>
+
+            <VBox spacing="10" prefWidth="280">
+                <Label text="Tanggal Akhir" styleClass="form-label"/>
+                <DatePicker fx:id="dpAkhir" maxWidth="Infinity">
+                    <styleClass>
+                        <String fx:value="date-input"/>
+                        <String fx:value="report-date-input"/>
+                    </styleClass>
+                </DatePicker>
+            </VBox>
+
+            <Region prefWidth="4"/>
+
+            <VBox spacing="8" prefWidth="300" styleClass="report-period-card">
+                <Label text="Periode Laporan" styleClass="report-period-label"/>
+                <Label fx:id="lblPeriode" text="-" styleClass="report-period-value"/>
+            </VBox>
+        </FlowPane>
+
+        <HBox spacing="0" styleClass="report-tab-shell">
+            <Button fx:id="btnTabPenjualan" text="Penjualan"
+                    onAction="#showPenjualan"
+                    maxWidth="Infinity" HBox.hgrow="ALWAYS">
+                <styleClass>
+                    <String fx:value="report-tab-active"/>
+                </styleClass>
+                <graphic>
+                    <SVGPath content="M4 16 L10 10 L14 14 L21 7 M15 7 H21 V13" styleClass="report-tab-icon"/>
+                </graphic>
+            </Button>
+
+            <Button fx:id="btnTabStok" text="Stok"
+                    onAction="#showStok"
+                    maxWidth="Infinity" HBox.hgrow="ALWAYS">
+                <styleClass>
+                    <String fx:value="report-tab"/>
+                </styleClass>
+                <graphic>
+                    <SVGPath content="M12 3 L20 7.5 V16.5 L12 21 L4 16.5 V7.5 Z M4 7.5 L12 12 L20 7.5 M12 12 V21" styleClass="report-tab-icon"/>
+                </graphic>
+            </Button>
+
+            <Button fx:id="btnTabHutang" text="Hutang/Piutang"
+                    onAction="#showHutang"
+                    maxWidth="Infinity" HBox.hgrow="ALWAYS">
+                <styleClass>
+                    <String fx:value="report-tab"/>
+                </styleClass>
+                <graphic>
+                    <SVGPath content="M4 7 H20 V17 H4 Z M4 10 H20 M16 14 H19 M7 14 H12" styleClass="report-tab-icon"/>
+                </graphic>
+            </Button>
+        </HBox>
+
+        <VBox fx:id="panelPenjualan" spacing="24">
+            <FlowPane hgap="20" vgap="16">
+                <HBox prefWidth="430" styleClass="report-summary-card" alignment="CENTER_LEFT">
+                    <padding><Insets top="22" right="24" bottom="22" left="24"/></padding>
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label text="Total Penjualan" styleClass="report-card-label"/>
+                        <Label fx:id="lblTotalPenjualan" text="Rp 0" styleClass="report-card-money"/>
+                    </VBox>
+                    <StackPane styleClass="report-card-icon-shell report-card-icon-green">
+                        <SVGPath content="M4 16 L10 10 L14 14 L21 7 M15 7 H21 V13" styleClass="report-card-svg-green"/>
+                    </StackPane>
+                </HBox>
+
+                <HBox prefWidth="430" styleClass="report-summary-card" alignment="CENTER_LEFT">
+                    <padding><Insets top="22" right="24" bottom="22" left="24"/></padding>
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label text="Jumlah Transaksi" styleClass="report-card-label"/>
+                        <Label fx:id="lblJumlahTransaksi" text="0" styleClass="report-card-value"/>
+                    </VBox>
+                    <StackPane styleClass="report-card-icon-shell report-card-icon-blue">
+                        <SVGPath content="M7 3 H17 L21 7 V21 L18 19 L15 21 L12 19 L9 21 L6 19 L3 21 V7 Z M8 9 H16 M8 13 H16 M8 17 H13" styleClass="report-card-svg-blue"/>
+                    </StackPane>
+                </HBox>
+            </FlowPane>
+
+            <VBox spacing="16" styleClass="report-section-card">
+                <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+                <Label text="Penjualan per Menu" styleClass="report-section-title"/>
+                <VBox fx:id="containerPenjualanPerMenu" spacing="10"/>
+            </VBox>
+
+            <VBox spacing="16" styleClass="report-section-card">
+                <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+                <Label text="Detail Transaksi" styleClass="report-section-title"/>
+                <VBox fx:id="containerDetailTransaksi" spacing="10"/>
+            </VBox>
+        </VBox>
+
+        <VBox fx:id="panelStok" spacing="24" visible="false" managed="false">
+            <FlowPane hgap="20" vgap="16">
+                <VBox prefWidth="430" minHeight="250" spacing="18" styleClass="report-stock-warning-card">
+                    <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+                    <Label text="Stok Menipis" styleClass="report-stock-warning-title"/>
+                    <VBox fx:id="containerStokMenipis" spacing="10"/>
+                </VBox>
+
+                <VBox prefWidth="430" minHeight="250" spacing="18" styleClass="report-stock-safe-card">
+                    <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+                    <Label text="Stok Aman" styleClass="report-stock-safe-title"/>
+                    <VBox fx:id="containerStokAman" spacing="10"/>
+                </VBox>
+            </FlowPane>
+
+            <VBox spacing="18" styleClass="report-section-card">
+                <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+                <Label text="Detail Stok" styleClass="report-section-title"/>
+                <VBox fx:id="containerDetailStok" spacing="0"/>
+            </VBox>
+        </VBox>
+
+        <VBox fx:id="panelHutang" spacing="24" visible="false" managed="false">
+            <FlowPane hgap="20" vgap="16">
+                <VBox prefWidth="430" spacing="18">
+                    <styleClass>
+                        <String fx:value="report-debt-card"/>
+                        <String fx:value="report-debt-card-red"/>
+                    </styleClass>
+                    <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+                    <Label text="Hutang" styleClass="report-debt-title-red"/>
+
+                    <HBox styleClass="report-debt-row-soft-red" alignment="CENTER_LEFT">
+                        <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                        <Label text="Belum Lunas" styleClass="report-debt-row-label-red"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblHutangBelum" text="Rp 0" styleClass="report-debt-value-red"/>
+                    </HBox>
+
+                    <HBox styleClass="report-debt-row-neutral" alignment="CENTER_LEFT">
+                        <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                        <Label text="Sudah Lunas" styleClass="report-debt-row-label-neutral"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblHutangLunas" text="Rp 0" styleClass="report-debt-value-neutral"/>
+                    </HBox>
+
+                    <HBox styleClass="report-debt-row-total-red" alignment="CENTER_LEFT">
+                        <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                        <Label text="Total Hutang">
+                            <styleClass>
+                                <String fx:value="report-debt-total-label"/>
+                                <String fx:value="report-debt-row-label-red"/>
+                            </styleClass>
+                        </Label>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblTotalHutang" text="Rp 0" styleClass="report-debt-total-red"/>
+                    </HBox>
+                </VBox>
+
+                <VBox prefWidth="430" spacing="18">
+                    <styleClass>
+                        <String fx:value="report-debt-card"/>
+                        <String fx:value="report-debt-card-orange"/>
+                    </styleClass>
+                    <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+                    <Label text="Piutang" styleClass="report-debt-title-orange"/>
+
+                    <HBox styleClass="report-debt-row-soft-orange" alignment="CENTER_LEFT">
+                        <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                        <Label text="Belum Lunas" styleClass="report-debt-row-label-orange"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblPiutangBelum" text="Rp 0" styleClass="report-debt-value-orange"/>
+                    </HBox>
+
+                    <HBox styleClass="report-debt-row-neutral" alignment="CENTER_LEFT">
+                        <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                        <Label text="Sudah Lunas" styleClass="report-debt-row-label-neutral"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblPiutangLunas" text="Rp 0" styleClass="report-debt-value-neutral"/>
+                    </HBox>
+
+                    <HBox styleClass="report-debt-row-total-orange" alignment="CENTER_LEFT">
+                        <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                        <Label text="Total Piutang">
+                            <styleClass>
+                                <String fx:value="report-debt-total-label"/>
+                                <String fx:value="report-debt-row-label-orange"/>
+                            </styleClass>
+                        </Label>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblTotalPiutang" text="Rp 0" styleClass="report-debt-total-orange"/>
+                    </HBox>
+                </VBox>
+            </FlowPane>
+
+            <VBox spacing="18" styleClass="report-section-card">
+                <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+                <Label text="Hutang Belum Lunas" styleClass="report-section-title"/>
+                <VBox fx:id="containerHutangBelum" spacing="0"/>
+            </VBox>
+
+            <VBox spacing="18" styleClass="report-section-card">
+                <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+                <Label text="Piutang Belum Lunas" styleClass="report-section-title"/>
+                <VBox fx:id="containerPiutangBelum" spacing="0"/>
+            </VBox>
+        </VBox>
+    </VBox>
+</ScrollPane>

@@ -36,6 +36,20 @@ public class MenuController implements Initializable {
     }
 
     private void setupColumns() {
+        colNama.setPrefWidth(260);
+        colNama.setMinWidth(220);
+
+        colKategori.setPrefWidth(160);
+        colKategori.setMinWidth(140);
+
+        colHarga.setPrefWidth(160);
+        colHarga.setMinWidth(140);
+
+        colAksi.setPrefWidth(190);
+        colAksi.setMinWidth(190);
+        colAksi.setMaxWidth(220);
+        colAksi.setStyle("-fx-alignment: CENTER_RIGHT;");
+
         colNama.setCellValueFactory(data ->
                 new javafx.beans.property.SimpleStringProperty(
                         data.getValue().getNamaMenu()));
@@ -94,23 +108,12 @@ public class MenuController implements Initializable {
 
         // Kolom aksi
         colAksi.setCellFactory(col -> new TableCell<>() {
-            private final Button btnEdit = new Button("✏  Edit");
-            private final Button btnHapus = new Button("🗑  Hapus");
+            private final Button btnEdit = new Button("Edit");
+            private final Button btnHapus = new Button("Hapus");
 
             {
-                btnEdit.setStyle(
-                        "-fx-background-color: transparent;" +
-                                "-fx-text-fill: #4F46E5;" +
-                                "-fx-cursor: hand;" +
-                                "-fx-font-size: 13;" +
-                                "-fx-font-weight: bold;");
-
-                btnHapus.setStyle(
-                        "-fx-background-color: transparent;" +
-                                "-fx-text-fill: #EF4444;" +
-                                "-fx-cursor: hand;" +
-                                "-fx-font-size: 13;" +
-                                "-fx-font-weight: bold;");
+                btnEdit.getStyleClass().addAll("table-action-button", "table-action-button-edit");
+                btnHapus.getStyleClass().addAll("table-action-button", "table-action-button-delete");
 
                 btnEdit.setOnAction(e -> {
                     Menu menu = getTableView().getItems().get(getIndex());
@@ -134,9 +137,11 @@ public class MenuController implements Initializable {
                 if (empty) {
                     setGraphic(null);
                 } else {
-                    HBox box = new HBox(4, btnEdit, btnHapus);
+                    HBox box = new HBox(8, btnEdit, btnHapus);
                     box.setAlignment(Pos.CENTER_RIGHT);
+                    box.setMaxWidth(Double.MAX_VALUE);
                     setGraphic(box);
+                    setText(null);
                     setAlignment(Pos.CENTER_RIGHT);
                 }
             }

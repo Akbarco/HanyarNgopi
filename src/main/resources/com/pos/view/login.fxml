@@ -1,43 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
-
-<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.pos.controller.LoginController"
+           fx:id="rootPane"
            styleClass="root-pane"
            stylesheets="@css/login.css">
 
-    <VBox styleClass="card" alignment="TOP_CENTER" maxWidth="420" maxHeight="520">
+    <VBox fx:id="loginCard" styleClass="login-card" alignment="CENTER" spacing="20">
+        <padding><Insets top="40" right="44" bottom="36" left="44"/></padding>
 
+        <ImageView fitWidth="92" fitHeight="92" preserveRatio="true">
+            <image>
+                <Image url="@image/logo.jpeg"/>
+            </image>
+        </ImageView>
 
-        <VBox styleClass="card-header" alignment="CENTER" prefHeight="100">
-            <ImageView fitWidth="60" fitHeight="60" preserveRatio="true">
-                <image>
-                    <Image url="@image/logo.jpeg"/>
-                </image>
-            </ImageView>
-        </VBox>
-
-
-        <VBox styleClass="card-body" spacing="6">
-
-            <Label text="Sistem Manajemen Cafe HanyarNgopi" styleClass="title"/>
+        <VBox alignment="CENTER" spacing="8">
+            <Label text="HanyarNgopi" styleClass="title"/>
             <Label text="Masuk untuk mengelola menu, stok, dan transaksi"
                    styleClass="subtitle" wrapText="true"/>
+        </VBox>
 
-            <Label text="Username" styleClass="field-label">
-                <VBox.margin><Insets top="20"/></VBox.margin>
-            </Label>
+        <VBox spacing="10" fillWidth="true">
+            <Label text="Username" styleClass="field-label"/>
             <TextField fx:id="txtUsername"
                        promptText="Masukkan username"
                        styleClass="input-field"/>
 
             <Label text="Password" styleClass="field-label">
-                <VBox.margin><Insets top="12"/></VBox.margin>
+                <VBox.margin><Insets top="4"/></VBox.margin>
             </Label>
             <PasswordField fx:id="txtPassword"
                            promptText="Masukkan password"
@@ -45,9 +46,8 @@
 
             <Button text="Masuk" onAction="#handleLogin"
                     styleClass="btn-login" maxWidth="Infinity">
-                <VBox.margin><Insets top="24"/></VBox.margin>
+                <VBox.margin><Insets top="10"/></VBox.margin>
             </Button>
-
         </VBox>
     </VBox>
 </StackPane>

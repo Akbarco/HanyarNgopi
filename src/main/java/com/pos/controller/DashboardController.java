@@ -8,9 +8,13 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +30,7 @@ public class DashboardController implements Initializable {
     @FXML private Button btnTransaksi;
     @FXML private Button btnHutang;
     @FXML private Button btnLaporan;
+    @FXML private ImageView logoImage;
 
     private List<Button> navButtons;
 
@@ -43,6 +48,8 @@ public class DashboardController implements Initializable {
         if (btnTransaksi != null) navButtons.add(btnTransaksi);
         if (btnHutang != null) navButtons.add(btnHutang);
         if (btnLaporan != null) navButtons.add(btnLaporan);
+
+        loadLogo();
 
         javafx.application.Platform.runLater(() -> {
             if (contentArea != null) {
@@ -101,6 +108,7 @@ public class DashboardController implements Initializable {
         loadView("/com/pos/view/laporan.fxml");
     }
 
+
     @FXML
     public void handleLogout() {
         try {
@@ -109,9 +117,9 @@ public class DashboardController implements Initializable {
                     getClass().getResource("/com/pos/view/login.fxml")
             );
             Stage stage = (Stage) contentArea.getScene().getWindow();
-            Scene scene = new Scene(loader.load());
+            Scene scene = new Scene(loader.load(), 960, 720);
             stage.setScene(scene);
-            stage.setTitle("Sistem Manajemen Warung");
+            stage.setTitle("HanyarNgopi");
             stage.centerOnScreen();
         } catch (Exception e) {
             e.printStackTrace();
@@ -124,11 +132,26 @@ public class DashboardController implements Initializable {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource(fxmlPath)
             );
-            contentArea.getChildren().clear();
-            contentArea.getChildren().add(loader.load());
+            javafx.scene.Node view = loader.load();
+            if (view instanceof Region region) {
+                region.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+            }
+            StackPane.setAlignment(view, javafx.geometry.Pos.TOP_LEFT);
+            contentArea.getChildren().setAll(view);
         } catch (Exception e) {
             e.printStackTrace();
             AlertUtil.showError("Error", "Gagal membuka halaman.");
+        }
+    }
+
+    private void loadLogo() {
+        if (logoImage == null) {
+            return;
+        }
+
+        InputStream stream = getClass().getResourceAsStream("/com/pos/view/image/logo.jpeg");
+        if (stream != null) {
+            logoImage.setImage(new Image(stream));
         }
     }
 

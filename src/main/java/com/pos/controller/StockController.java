@@ -41,6 +41,26 @@ public class StockController implements Initializable {
     }
 
     private void setupColumns() {
+        colNama.setPrefWidth(240);
+        colNama.setMinWidth(200);
+
+        colSatuan.setPrefWidth(120);
+        colSatuan.setMinWidth(100);
+
+        colJumlah.setPrefWidth(120);
+        colJumlah.setMinWidth(100);
+
+        colMinimum.setPrefWidth(140);
+        colMinimum.setMinWidth(120);
+
+        colStatus.setPrefWidth(170);
+        colStatus.setMinWidth(150);
+
+        colAksi.setPrefWidth(190);
+        colAksi.setMinWidth(190);
+        colAksi.setMaxWidth(220);
+        colAksi.setStyle("-fx-alignment: CENTER_RIGHT;");
+
         colNama.setCellValueFactory(data ->
                 new javafx.beans.property.SimpleStringProperty(
                         data.getValue().getNamaMenu()));
@@ -119,23 +139,12 @@ public class StockController implements Initializable {
         });
 
         colAksi.setCellFactory(col -> new TableCell<>() {
-            private final Button btnEdit = new Button("✏  Edit");
-            private final Button btnHapus = new Button("🗑  Hapus");
+            private final Button btnEdit = new Button("Edit");
+            private final Button btnHapus = new Button("Hapus");
 
             {
-                btnEdit.setStyle(
-                        "-fx-background-color: transparent;" +
-                                "-fx-text-fill: #4F46E5;" +
-                                "-fx-cursor: hand;" +
-                                "-fx-font-size: 13;" +
-                                "-fx-font-weight: bold;");
-
-                btnHapus.setStyle(
-                        "-fx-background-color: transparent;" +
-                                "-fx-text-fill: #EF4444;" +
-                                "-fx-cursor: hand;" +
-                                "-fx-font-size: 13;" +
-                                "-fx-font-weight: bold;");
+                btnEdit.getStyleClass().addAll("table-action-button", "table-action-button-edit");
+                btnHapus.getStyleClass().addAll("table-action-button", "table-action-button-delete");
 
                 btnEdit.setOnAction(e -> {
                     Stock stock = getTableView().getItems().get(getIndex());
@@ -159,9 +168,11 @@ public class StockController implements Initializable {
                 if (empty) {
                     setGraphic(null);
                 } else {
-                    HBox box = new HBox(4, btnEdit, btnHapus);
+                    HBox box = new HBox(8, btnEdit, btnHapus);
                     box.setAlignment(Pos.CENTER_RIGHT);
+                    box.setMaxWidth(Double.MAX_VALUE);
                     setGraphic(box);
+                    setText(null);
                     setAlignment(Pos.CENTER_RIGHT);
                 }
             }

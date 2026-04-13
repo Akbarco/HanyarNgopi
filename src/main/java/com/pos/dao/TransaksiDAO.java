@@ -11,43 +11,58 @@ import java.util.List;
 public class TransaksiDAO {
 
     public int insertTransaksi(Transaksi t) {
-        String sql = "INSERT INTO transactions (id_user, tanggal, total) VALUES (?, NOW(), ?)";
-        try (Connection conn = koneksi.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, t.getIdUser());
-            ps.setDouble(2, t.getTotal());
-            ps.executeUpdate();
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) return rs.getInt(1);
+        try (Connection conn = koneksi.getConnection()) {
+            return insertTransaksi(conn, t);
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return -1;
     }
 
-    public void insertDetail(TransaksiDetail detail) {
-        String sql = """
-            INSERT INTO transaction_detail
-            (id_transaksi, id_menu, qty, subtotal, metode_pembayaran)
-            VALUES (?, ?, ?, ?, ?)
-            """;
-        try (Connection conn = koneksi.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, detail.getIdTransaksi());
-            ps.setInt(2, detail.getIdMenu());
-            ps.setInt(3, detail.getQty());
-            ps.setDouble(4, detail.getSubtotal());
-            ps.setString(5, detail.getMetodePembayaran());
+    public int insertTransaksi(Connection conn, Transaksi t) throws SQLException {
+        String sql = "INSERT INTO transactions (id_user, tanggal, total) VALUES (?, NOW(), ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, t.getIdUser());
+            ps.setInt(2, (int) Math.round(t.getTotal()));
             ps.executeUpdate();
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) return rs.getInt(1);
+        }
+        return -1;
+    }
+
+    public void insertDetail(TransaksiDetail detail) {
+        try (Connection conn = koneksi.getConnection()) {
+            insertDetail(conn, detail);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
+    public void insertDetail(Connection conn, TransaksiDetail detail) throws SQLException {
+        String sql = """
+            INSERT INTO transaction_detail
+            (id_transaksi, id_menu, qty, subtotal, metode_pembayaran)
+            VALUES (?, ?, ?, ?, ?)
+            """;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, detail.getIdTransaksi());
+            ps.setInt(2, detail.getIdMenu());
+            ps.setInt(3, detail.getQty());
+            ps.setInt(4, (int) Math.round(detail.getSubtotal()));
+            ps.setString(5, detail.getMetodePembayaran());
+            ps.executeUpdate();
+        }
+    }
+
     public List<Transaksi> findAll() {
         List<Transaksi> list = new ArrayList<>();
-        String sql = "SELECT * FROM transactions ORDER BY tanggal DESC";
-        try (Connection conn = koneksi.getConnection();
+        String sql = "SELECT * FROM transactions ORDER BY tanggal DESC, id_transaksi DESC";
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return list;
+        }
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -71,7 +86,11 @@ public class TransaksiDAO {
             JOIN menus m ON td.id_menu = m.id_menu
             WHERE td.id_transaksi = ?
             """;
-        try (Connection conn = koneksi.getConnection();
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return list;
+        }
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idTransaksi);
             ResultSet rs = ps.executeQuery();

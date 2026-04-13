@@ -3,7 +3,9 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <ScrollPane xmlns="http://javafx.com/javafx"
@@ -11,103 +13,80 @@
             fx:controller="com.pos.controller.DebtController"
             fitToWidth="true"
             stylesheets="@css/menu.css"
-            style="-fx-background-color: transparent;
-                   -fx-background: transparent;
-                   -fx-border-color: transparent;">
+            styleClass="debt-scroll">
 
-    <VBox spacing="24" style="-fx-background-color: #F1F5F9;">
+    <VBox spacing="24" styleClass="page-root">
         <padding><Insets top="32" right="32" bottom="32" left="32"/></padding>
 
         <VBox spacing="4">
-            <Label text="Kelola Hutang Piutang"
-                   style="-fx-font-size: 28; -fx-font-weight: bold; -fx-text-fill: #111827;"/>
-            <Label text="Catat dan pantau hutang serta piutang"
-                   style="-fx-font-size: 13; -fx-text-fill: #6B7280;"/>
+            <Label text="Kelola Hutang Piutang" styleClass="page-header-title"/>
+            <Label text="Catat dan pantau hutang serta piutang" styleClass="page-header-subtitle"/>
         </VBox>
 
-        <HBox spacing="16">
-            <HBox HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" spacing="20"
-                  style="-fx-background-color: #FFF7F7; -fx-background-radius: 16;
-                         -fx-border-color: #FECACA; -fx-border-radius: 16;
-                         -fx-border-width: 1.5;
-                         -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.04),14,0,0,3);">
+        <FlowPane hgap="16" vgap="16" prefWrapLength="1200" styleClass="debt-flow">
+            <HBox minWidth="320" prefWidth="520" HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" spacing="20"
+                  styleClass="debt-summary-hutang">
                 <padding><Insets top="22" right="24" bottom="22" left="24"/></padding>
 
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
                     <Label text="Total Hutang Belum Lunas"
-                           style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #BE123C;"/>
+                           styleClass="debt-summary-title-hutang"/>
                     <Label fx:id="lblTotalHutang" text="Rp 0"
-                           style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #7F1D1D;"/>
+                           styleClass="debt-summary-value-hutang"/>
                     <Label fx:id="lblCountHutang" text="0 item belum lunas"
-                           style="-fx-font-size: 12; -fx-text-fill: #BE123C;"/>
+                           styleClass="debt-summary-caption-hutang"/>
                 </VBox>
 
                 <Button text="+ Tambah Hutang"
                         onAction="#handleTambahHutang"
-                        style="-fx-background-color: #FF0000; -fx-text-fill: white;
-                               -fx-font-weight: bold; -fx-font-size: 13;
-                               -fx-background-radius: 12; -fx-cursor: hand;
-                               -fx-pref-height: 44; -fx-padding: 0 24 0 24;"/>
+                        styleClass="debt-action-hutang"/>
             </HBox>
 
-            <HBox HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" spacing="20"
-                  style="-fx-background-color: #FFFBF5; -fx-background-radius: 16;
-                         -fx-border-color: #FCD39D; -fx-border-radius: 16;
-                         -fx-border-width: 1.5;
-                         -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.04),14,0,0,3);">
+            <HBox minWidth="320" prefWidth="520" HBox.hgrow="ALWAYS" alignment="CENTER_LEFT" spacing="20"
+                  styleClass="debt-summary-piutang">
                 <padding><Insets top="22" right="24" bottom="22" left="24"/></padding>
 
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
                     <Label text="Total Piutang Belum Lunas"
-                           style="-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #C2410C;"/>
+                           styleClass="debt-summary-title-piutang"/>
                     <Label fx:id="lblTotalPiutang" text="Rp 0"
-                           style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #9A3412;"/>
+                           styleClass="debt-summary-value-piutang"/>
                     <Label fx:id="lblCountPiutang" text="0 item belum lunas"
-                           style="-fx-font-size: 12; -fx-text-fill: #C2410C;"/>
+                           styleClass="debt-summary-caption-piutang"/>
                 </VBox>
 
                 <Button text="+ Tambah Piutang"
                         onAction="#handleTambahPiutang"
-                        style="-fx-background-color: #FF5A00; -fx-text-fill: white;
-                               -fx-font-weight: bold; -fx-font-size: 13;
-                               -fx-background-radius: 12; -fx-cursor: hand;
-                               -fx-pref-height: 44; -fx-padding: 0 24 0 24;"/>
+                        styleClass="debt-action-piutang"/>
             </HBox>
-        </HBox>
+        </FlowPane>
 
-        <HBox spacing="0"
-              style="-fx-background-color: #E5E7EB; -fx-background-radius: 16;">
+        <HBox styleClass="tab-group" spacing="0">
             <padding><Insets top="4" right="4" bottom="4" left="4"/></padding>
 
             <Button fx:id="btnTabHutang" text="Hutang (0)"
                     onAction="#openTabHutang"
                     HBox.hgrow="ALWAYS"
-                    maxWidth="Infinity"/>
+                    maxWidth="Infinity"
+                    styleClass="tab-button-active"/>
 
             <Button fx:id="btnTabPiutang" text="Piutang (0)"
                     onAction="#openTabPiutang"
                     HBox.hgrow="ALWAYS"
-                    maxWidth="Infinity"/>
+                    maxWidth="Infinity"
+                    styleClass="tab-button"/>
         </HBox>
 
-        <VBox VBox.vgrow="ALWAYS"
-              style="-fx-background-color: white; -fx-background-radius: 16;
-                     -fx-border-color: #E5E7EB; -fx-border-radius: 16;
-                     -fx-border-width: 1;
-                     -fx-effect: dropshadow(gaussian,rgba(0,0,0,0.06),16,0,0,4);">
+        <VBox VBox.vgrow="ALWAYS" styleClass="debt-section-card">
             <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
 
-            <Label fx:id="lblSectionTitle" text="Daftar Hutang"
-                   style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #111827;">
+            <Label fx:id="lblSectionTitle" text="Daftar Hutang" styleClass="debt-item-title">
                 <VBox.margin><Insets bottom="18"/></VBox.margin>
             </Label>
 
             <ScrollPane fx:id="scrollDaftar" fitToWidth="true" VBox.vgrow="ALWAYS"
-                        style="-fx-background-color: transparent;
-                               -fx-background: transparent;
-                               -fx-border-color: transparent;">
-                <VBox fx:id="containerDaftar" spacing="0"
-                      style="-fx-background-color: transparent;">
+                        styleClass="debt-scroll">
+                <VBox fx:id="containerDaftar" spacing="0">
                     <padding><Insets right="2"/></padding>
                 </VBox>
             </ScrollPane>

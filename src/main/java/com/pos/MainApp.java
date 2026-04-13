@@ -1,8 +1,6 @@
 package com.pos;
 
 import com.pos.config.initDatabase;
-
-
 import com.pos.service.AuthService;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -21,13 +19,13 @@ public class MainApp extends Application {
         FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/com/pos/view/login.fxml")
         );
-        Scene scene = new Scene(loader.load());
-        primaryStage.setTitle("Sistem Manajemen Cafe");
+        Scene scene = new Scene(loader.load(), 960, 720);
+        primaryStage.setTitle("HanyarNgopi");
         primaryStage.setScene(scene);
-        primaryStage.show();
-        primaryStage.setWidth(1280);
-        primaryStage.setHeight(800);
+        primaryStage.setMinWidth(900);
+        primaryStage.setMinHeight(650);
         primaryStage.setResizable(true);
+        primaryStage.show();
         primaryStage.centerOnScreen();
     }
 

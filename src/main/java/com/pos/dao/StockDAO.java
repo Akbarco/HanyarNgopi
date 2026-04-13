@@ -16,7 +16,11 @@ public class StockDAO {
             JOIN menus m ON s.id_menu = m.id_menu
             ORDER BY m.nama_menu
             """;
-        try (Connection conn = koneksi.getConnection();
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return list;
+        }
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) list.add(mapRow(rs));
@@ -27,21 +31,34 @@ public class StockDAO {
     }
 
     public Stock findByIdMenu(int idMenu) {
-        String sql = "SELECT * FROM stock WHERE id_menu = ?";
-        try (Connection conn = koneksi.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, idMenu);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) return mapRow(rs);
+        try (Connection conn = koneksi.getConnection()) {
+            if (conn == null) {
+                return null;
+            }
+            return findByIdMenu(conn, idMenu);
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
     }
 
+    public Stock findByIdMenu(Connection conn, int idMenu) throws SQLException {
+        String sql = "SELECT * FROM stock WHERE id_menu = ? FOR UPDATE";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idMenu);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapRow(rs);
+        }
+        return null;
+    }
+
     public void insert(Stock stock) {
         String sql = "INSERT INTO stock (id_menu, jumlah_stok, satuan, stok_minimum) VALUES (?, ?, ?, ?)";
-        try (Connection conn = koneksi.getConnection();
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return;
+        }
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, stock.getIdMenu());
             ps.setInt(2, stock.getJumlahStok());
@@ -55,7 +72,11 @@ public class StockDAO {
 
     public void update(Stock stock) {
         String sql = "UPDATE stock SET jumlah_stok=?, satuan=?, stok_minimum=? WHERE id_stok=?";
-        try (Connection conn = koneksi.getConnection();
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return;
+        }
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, stock.getJumlahStok());
             ps.setString(2, stock.getSatuan());
@@ -69,7 +90,11 @@ public class StockDAO {
 
     public void delete(int idStok) {
         String sql = "DELETE FROM stock WHERE id_stok=?";
-        try (Connection conn = koneksi.getConnection();
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return;
+        }
+        try (conn;
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idStok);
             ps.executeUpdate();
@@ -79,14 +104,19 @@ public class StockDAO {
     }
 
     public void decreaseStock(int idMenu, int qty) {
+        try (Connection conn = koneksi.getConnection()) {
+            decreaseStock(conn, idMenu, qty);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void decreaseStock(Connection conn, int idMenu, int qty) throws SQLException {
         String sql = "UPDATE stock SET jumlah_stok = jumlah_stok - ? WHERE id_menu = ?";
-        try (Connection conn = koneksi.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, qty);
             ps.setInt(2, idMenu);
             ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 

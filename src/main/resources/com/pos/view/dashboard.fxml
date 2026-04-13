@@ -1,110 +1,130 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
-
-<?import java.awt.Image?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
+
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.pos.controller.DashboardController"
             stylesheets="@css/dashboard.css"
-            prefWidth="1280" prefHeight="800">
+            prefWidth="1280" prefHeight="800"
+            styleClass="dashboard-root">
 
     <left>
-        <VBox prefWidth="260"
-              style="-fx-background-color: white;
-                     -fx-border-color: transparent #E5E7EB transparent transparent;
-                     -fx-border-width: 0 1 0 0;">
-            <padding><Insets top="24" right="16" bottom="24" left="16"/></padding>
+        <VBox prefWidth="280" minWidth="250" maxWidth="320" styleClass="dashboard-sidebar">
+            <VBox styleClass="dashboard-sidebar-top">
+                <padding><Insets top="24" right="18" bottom="22" left="18"/></padding>
 
-            <!-- Logo -->
-            <HBox spacing="12" alignment="CENTER_LEFT">
-                <padding><Insets bottom="8"/></padding>
-                <ImageView fx:id="logoImage"
-                           fitWidth="44"
-                           fitHeight="44"
-                           preserveRatio="true"/>
-                <VBox spacing="2">
-                    <Label text="HanyarNgopi"
-                           style="-fx-text-fill: #111827; -fx-font-size: 15;
-                      -fx-font-weight: bold;"/>
-                    <Label text="Sistem Manajemen"
-                           style="-fx-text-fill: #6B7280; -fx-font-size: 11;"/>
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <StackPane styleClass="brand-shell">
+                        <padding><Insets top="7" right="7" bottom="7" left="7"/></padding>
+                        <ImageView fx:id="logoImage"
+                                   fitWidth="34"
+                                   fitHeight="34"
+                                   preserveRatio="true"/>
+                    </StackPane>
+                    <VBox spacing="2">
+                        <Label text="HanyarNgopi" styleClass="brand-title"/>
+                        <Label text="Sistem Manajemen" styleClass="brand-subtitle"/>
+                    </VBox>
+                </HBox>
+
+                <VBox styleClass="user-shell" spacing="3">
+                    <padding><Insets top="14" right="14" bottom="14" left="14"/></padding>
+                    <VBox.margin><Insets top="18"/></VBox.margin>
+                    <Label text="Login sebagai:" styleClass="user-label"/>
+                    <Label fx:id="lblUsername" text="Administrator" styleClass="user-name"/>
                 </VBox>
-            </HBox>
-
-            <!-- User info -->
-            <VBox style="-fx-background-color: #EEF2FF; -fx-background-radius: 12;"
-                  spacing="3">
-                <padding><Insets top="14" right="14" bottom="14" left="14"/></padding>
-                <VBox.margin><Insets top="16" bottom="24"/></VBox.margin>
-                <Label text="Login sebagai:"
-                       style="-fx-text-fill: #6B7280; -fx-font-size: 11;"/>
-                <Label fx:id="lblUsername" text="Administrator"
-                       style="-fx-text-fill: #4F46E5; -fx-font-size: 15;
-                              -fx-font-weight: bold;"/>
             </VBox>
 
-            <!-- Menu label -->
-            <Label text="MENU UTAMA"
-                   style="-fx-text-fill: #9CA3AF; -fx-font-size: 10;
-                          -fx-font-weight: bold; -fx-padding: 0 0 0 4;">
-                <VBox.margin><Insets bottom="6"/></VBox.margin>
-            </Label>
+            <VBox spacing="10" styleClass="sidebar-section">
+                <padding><Insets top="22" right="16" bottom="18" left="16"/></padding>
 
-            <!-- Nav buttons -->
-            <Button fx:id="btnDashboard" text="  📊  Dashboard"
-                    onAction="#openDashboardHome"
-                    maxWidth="Infinity" styleClass="nav-btn-active">
-                <VBox.margin><Insets bottom="2"/></VBox.margin>
-            </Button>
-            <Button fx:id="btnMenu" text="  🍽  Menu"
-                    onAction="#openMenu"
-                    maxWidth="Infinity" styleClass="nav-btn">
-                <VBox.margin><Insets bottom="2"/></VBox.margin>
-            </Button>
-            <Button fx:id="btnStok" text="  📦  Stok"
-                    onAction="#openStock"
-                    maxWidth="Infinity" styleClass="nav-btn">
-                <VBox.margin><Insets bottom="2"/></VBox.margin>
-            </Button>
-            <Button fx:id="btnTransaksi" text="  🧾  Transaksi"
-                    onAction="#openTransaksi"
-                    maxWidth="Infinity" styleClass="nav-btn">
-                <VBox.margin><Insets bottom="2"/></VBox.margin>
-            </Button>
-            <Button fx:id="btnHutang" text="  💳  Hutang"
-                    onAction="#openHutang"
-                    maxWidth="Infinity" styleClass="nav-btn">
-                <VBox.margin><Insets bottom="2"/></VBox.margin>
-            </Button>
-            <Button fx:id="btnLaporan" text="  📄  Laporan"
-                    onAction="#openLaporan"
-                    maxWidth="Infinity" styleClass="nav-btn">
-                <VBox.margin><Insets bottom="2"/></VBox.margin>
-            </Button>
+                <Label text="MENU UTAMA" styleClass="sidebar-label">
+                    <VBox.margin><Insets bottom="2"/></VBox.margin>
+                </Label>
+
+                <Button fx:id="btnDashboard" text="Dashboard"
+                        onAction="#openDashboardHome"
+                        maxWidth="Infinity" styleClass="nav-btn-active">
+                    <graphic>
+                        <SVGPath content="M4 4 H10 V10 H4 Z M14 4 H20 V10 H14 Z M4 14 H10 V20 H4 Z M14 14 H20 V20 H14 Z"
+                                 styleClass="nav-svg"/>
+                    </graphic>
+                    <VBox.margin><Insets bottom="2"/></VBox.margin>
+                </Button>
+                <Button fx:id="btnMenu" text="Menu"
+                        onAction="#openMenu"
+                        maxWidth="Infinity" styleClass="nav-btn">
+                    <graphic>
+                        <SVGPath content="M4 5 H20 M4 12 H20 M4 19 H20"
+                                 styleClass="nav-svg"/>
+                    </graphic>
+                    <VBox.margin><Insets bottom="2"/></VBox.margin>
+                </Button>
+                <Button fx:id="btnStok" text="Stok"
+                        onAction="#openStock"
+                        maxWidth="Infinity" styleClass="nav-btn">
+                    <graphic>
+                        <SVGPath content="M12 3 L20 7.5 V16.5 L12 21 L4 16.5 V7.5 Z M4 7.5 L12 12 L20 7.5 M12 12 V21"
+                                 styleClass="nav-svg"/>
+                    </graphic>
+                    <VBox.margin><Insets bottom="2"/></VBox.margin>
+                </Button>
+                <Button fx:id="btnTransaksi" text="Transaksi"
+                        onAction="#openTransaksi"
+                        maxWidth="Infinity" styleClass="nav-btn">
+                    <graphic>
+                        <SVGPath content="M7 3 H17 L21 7 V21 L18 19 L15 21 L12 19 L9 21 L6 19 L3 21 V7 Z M8 9 H16 M8 13 H16 M8 17 H13"
+                                 styleClass="nav-svg"/>
+                    </graphic>
+                    <VBox.margin><Insets bottom="2"/></VBox.margin>
+                </Button>
+                <Button fx:id="btnHutang" text="Hutang"
+                        onAction="#openHutang"
+                        maxWidth="Infinity" styleClass="nav-btn">
+                    <graphic>
+                        <SVGPath content="M4 7 H20 V17 H4 Z M4 10 H20 M16 14 H19 M7 14 H12"
+                                 styleClass="nav-svg"/>
+                    </graphic>
+                    <VBox.margin><Insets bottom="2"/></VBox.margin>
+                </Button>
+                <Button fx:id="btnLaporan" text="Laporan"
+                        onAction="#openLaporan"
+                        maxWidth="Infinity" styleClass="nav-btn">
+                    <graphic>
+                        <SVGPath content="M6 3 H15 L20 8 V21 H6 Z M15 3 V8 H20 M9 13 H17 M9 17 H14"
+                                 styleClass="nav-svg"/>
+                    </graphic>
+                    <VBox.margin><Insets bottom="2"/></VBox.margin>
+                </Button>
+            </VBox>
 
             <VBox VBox.vgrow="ALWAYS"/>
 
-            <Label text="© 2026 Warung App"
-                   style="-fx-text-fill: #D1D5DB; -fx-font-size: 10;">
-                <VBox.margin><Insets bottom="10"/></VBox.margin>
-            </Label>
-
-            <Button text="  →  Keluar" onAction="#handleLogout"
-                    maxWidth="Infinity"
-                    style="-fx-background-color: #FEF2F2;
-                           -fx-text-fill: #EF4444;
-                           -fx-font-weight: bold; -fx-alignment: CENTER-LEFT;
-                           -fx-cursor: hand; -fx-pref-height: 42;
-                           -fx-background-radius: 8;"/>
+            <VBox spacing="12" styleClass="sidebar-footer">
+                <padding><Insets top="0" right="16" bottom="18" left="16"/></padding>
+                <Label text="© 2026 HanyarNgopi" styleClass="copyright">
+                    <VBox.margin><Insets bottom="4"/></VBox.margin>
+                </Label>
+                <Button text="Keluar" onAction="#handleLogout" maxWidth="Infinity" styleClass="logout-btn">
+                    <graphic>
+                        <SVGPath content="M10 6 H6 V18 H10 M14 8 L18 12 L14 16 M18 12 H9"
+                                 styleClass="logout-svg"/>
+                    </graphic>
+                </Button>
+            </VBox>
         </VBox>
     </left>
 
     <center>
-        <StackPane fx:id="contentArea"
-                   style="-fx-background-color: #F1F5F9;"/>
+        <StackPane fx:id="contentArea" styleClass="dashboard-content"/>
     </center>
 
 </BorderPane>
