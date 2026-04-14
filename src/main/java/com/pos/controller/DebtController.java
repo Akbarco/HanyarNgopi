@@ -353,28 +353,17 @@ public class DebtController implements Initializable {
 
         VBox root = new VBox(18);
         root.setPadding(new Insets(28));
-        root.setStyle("-fx-background-color: white;");
+        root.getStyleClass().add("dialog-root");
 
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
         Label lblTitle = new Label(title);
-        lblTitle.setStyle("-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #111827;");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Button btnClose = new Button("x");
-        btnClose.setStyle(
-                "-fx-background-color: transparent;" +
-                        "-fx-text-fill: #6B7280;" +
-                        "-fx-font-size: 16;" +
-                        "-fx-cursor: hand;"
-        );
-        btnClose.setOnAction(event -> dialog.close());
-        header.getChildren().addAll(lblTitle, spacer, btnClose);
+        lblTitle.getStyleClass().add("dialog-title");
+        header.getChildren().add(lblTitle);
 
         TextField txtNama = createTextField(namaPrompt);
         TextField txtNominal = createTextField("Contoh: 500000");
+        configureCurrencyField(txtNominal);
         DatePicker datePicker = createDatePicker();
         datePicker.setValue(LocalDate.now());
 
@@ -382,14 +371,14 @@ public class DebtController implements Initializable {
         txtKeterangan.setPromptText("Keterangan singkat");
         txtKeterangan.setWrapText(true);
         txtKeterangan.setPrefRowCount(4);
-        txtKeterangan.setStyle(textAreaStyle());
+        txtKeterangan.getStyleClass().add("dialog-text-area");
 
         Button btnBatal = new Button("Batal");
-        btnBatal.setStyle(secondaryButtonStyle());
+        btnBatal.getStyleClass().add("secondary-button");
         btnBatal.setOnAction(event -> dialog.close());
 
         Button btnSubmit = new Button("Tambah");
-        btnSubmit.setStyle(primaryButtonStyle());
+        btnSubmit.getStyleClass().add("primary-button");
         btnSubmit.setOnAction(event -> {
             String nama = txtNama.getText().trim();
             String nominalText = txtNominal.getText().trim();
@@ -441,31 +430,28 @@ public class DebtController implements Initializable {
         );
 
         Scene scene = new Scene(root, 560, 520);
+        scene.getStylesheets().add(getClass().getResource("/com/pos/view/css/menu.css").toExternalForm());
         dialog.setScene(scene);
         dialog.showAndWait();
     }
 
     private Label fieldLabel(String text) {
         Label label = new Label(text);
-        label.setStyle(
-                "-fx-font-size: 13;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-text-fill: #111827;"
-        );
+        label.getStyleClass().add("form-label");
         return label;
     }
 
     private TextField createTextField(String promptText) {
         TextField textField = new TextField();
         textField.setPromptText(promptText);
-        textField.setStyle(inputStyle());
+        textField.getStyleClass().add("dialog-field");
         return textField;
     }
 
     private DatePicker createDatePicker() {
         DatePicker datePicker = new DatePicker();
         datePicker.setMaxWidth(Double.MAX_VALUE);
-        datePicker.setStyle(inputStyle());
+        datePicker.getStyleClass().add("dialog-date-input");
         datePicker.setConverter(new StringConverter<>() {
             @Override
             public String toString(LocalDate date) {
@@ -485,47 +471,6 @@ public class DebtController implements Initializable {
             }
         });
         return datePicker;
-    }
-
-    private String inputStyle() {
-        return "-fx-background-color: #F3F4F6;" +
-                "-fx-background-radius: 10;" +
-                "-fx-border-color: transparent;" +
-                "-fx-border-radius: 10;" +
-                "-fx-pref-height: 44;" +
-                "-fx-font-size: 13;" +
-                "-fx-padding: 0 14 0 14;";
-    }
-
-    private String textAreaStyle() {
-        return "-fx-background-color: #F3F4F6;" +
-                "-fx-background-radius: 10;" +
-                "-fx-border-color: transparent;" +
-                "-fx-border-radius: 10;" +
-                "-fx-font-size: 13;" +
-                "-fx-padding: 10 14 10 14;";
-    }
-
-    private String primaryButtonStyle() {
-        return "-fx-background-color: #0F172A;" +
-                "-fx-text-fill: white;" +
-                "-fx-font-size: 14;" +
-                "-fx-font-weight: bold;" +
-                "-fx-background-radius: 10;" +
-                "-fx-cursor: hand;" +
-                "-fx-pref-height: 42;" +
-                "-fx-padding: 0 22 0 22;";
-    }
-
-    private String secondaryButtonStyle() {
-        return "-fx-background-color: white;" +
-                "-fx-text-fill: #374151;" +
-                "-fx-border-color: #D1D5DB;" +
-                "-fx-border-radius: 10;" +
-                "-fx-background-radius: 10;" +
-                "-fx-cursor: hand;" +
-                "-fx-pref-height: 42;" +
-                "-fx-padding: 0 18 0 18;";
     }
 
     private void styleTabButtons() {
@@ -554,11 +499,60 @@ public class DebtController implements Initializable {
     }
 
     private double parseNominal(String value) {
-        String cleaned = value.replaceAll("[^0-9]", "");
+        String cleaned = normalizeLeadingZeros(extractDigits(value));
         if (cleaned.isBlank()) {
             throw new NumberFormatException();
         }
         return Double.parseDouble(cleaned);
+    }
+
+    private void configureCurrencyField(TextField field) {
+        final boolean[] updating = {false};
+        field.textProperty().addListener((obs, oldValue, newValue) -> {
+            if (updating[0]) {
+                return;
+            }
+
+            String digits = extractDigits(newValue);
+            if (digits.isEmpty()) {
+                if (!newValue.isEmpty()) {
+                    updating[0] = true;
+                    field.clear();
+                    updating[0] = false;
+                }
+                return;
+            }
+
+            String normalized = normalizeLeadingZeros(digits);
+            String formatted = formatDigits(normalized);
+            if (!formatted.equals(newValue)) {
+                updating[0] = true;
+                field.setText(formatted);
+                field.positionCaret(formatted.length());
+                updating[0] = false;
+            }
+        });
+    }
+
+    private String extractDigits(String value) {
+        return value == null ? "" : value.replaceAll("[^0-9]", "");
+    }
+
+    private String normalizeLeadingZeros(String digits) {
+        if (digits == null || digits.isBlank()) {
+            return "";
+        }
+        return digits.replaceFirst("^0+(?!$)", "");
+    }
+
+    private String formatDigits(String digits) {
+        if (digits == null || digits.isBlank()) {
+            return "";
+        }
+        NumberFormat formatter = NumberFormat.getNumberInstance(localeId);
+        formatter.setMaximumFractionDigits(0);
+        formatter.setMinimumFractionDigits(0);
+        return formatter.format(Long.parseLong(digits));
     }
 
     private String formatCurrency(double amount) {

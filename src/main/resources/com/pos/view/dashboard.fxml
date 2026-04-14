@@ -63,7 +63,7 @@
                         onAction="#openMenu"
                         maxWidth="Infinity" styleClass="nav-btn">
                     <graphic>
-                        <SVGPath content="M4 5 H20 M4 12 H20 M4 19 H20"
+                        <SVGPath content="M7 3 V9 M9 3 V9 M11 3 V9 M9 9 V21 M15 3 C13.8 5.4 13.8 8.8 15 11.2 V21"
                                  styleClass="nav-svg"/>
                     </graphic>
                     <VBox.margin><Insets bottom="2"/></VBox.margin>

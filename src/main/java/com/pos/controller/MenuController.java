@@ -16,6 +16,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.net.URL;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class MenuController implements Initializable {
@@ -28,6 +30,7 @@ public class MenuController implements Initializable {
 
     private final MenuDAO menuDAO = new MenuDAO();
     private final ObservableList<Menu> menuList = FXCollections.observableArrayList();
+    private final Locale localeId = new Locale("id", "ID");
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -71,7 +74,7 @@ public class MenuController implements Initializable {
                     setText(null);
                     setStyle("");
                 } else {
-                    setText("Rp " + String.format("%,.0f", item));
+                    setText("Rp " + formatPlainCurrency(item));
                     setStyle("-fx-text-fill: #16A34A; -fx-font-weight: bold;");
                 }
             }
@@ -164,6 +167,7 @@ public class MenuController implements Initializable {
         TextField txtNama = createTextField("Nama menu");
         ComboBox<String> cmbKategori = createKategoriCombo();
         TextField txtHarga = createTextField("Harga (Rp)");
+        configureCurrencyField(txtHarga);
 
         Button btnBatal = createBtnBatal(dialog);
         Button btnSimpan = new Button("Tambah");
@@ -191,7 +195,8 @@ public class MenuController implements Initializable {
         cmbKategori.setValue(menu.getKategori());
 
         TextField txtHarga = createTextField("Harga (Rp)");
-        txtHarga.setText(String.valueOf((int) menu.getHarga()));
+        configureCurrencyField(txtHarga);
+        txtHarga.setText(formatPlainCurrency(menu.getHarga()));
 
         Button btnBatal = createBtnBatal(dialog);
         Button btnSimpan = new Button("Simpan");
@@ -222,7 +227,7 @@ public class MenuController implements Initializable {
 
         double harga;
         try {
-            harga = Double.parseDouble(hargaStr);
+            harga = parseCurrency(hargaStr);
             if (harga <= 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
             AlertUtil.showError("Validasi", "Harga harus berupa angka positif!");
@@ -316,9 +321,70 @@ public class MenuController implements Initializable {
     }
 
     private String btnPrimaryStyle() {
-        return "-fx-background-color: #1A1A2E; -fx-text-fill: white;" +
+        return "-fx-background-color: linear-gradient(to right, #5B4BFF, #4F46E5); -fx-text-fill: white;" +
                 "-fx-background-radius: 8; -fx-cursor: hand;" +
                 "-fx-pref-height: 40; -fx-pref-width: 100;";
+    }
+
+    private void configureCurrencyField(TextField field) {
+        final boolean[] updating = {false};
+        field.textProperty().addListener((obs, oldValue, newValue) -> {
+            if (updating[0]) {
+                return;
+            }
+
+            String digits = extractDigits(newValue);
+            if (digits.isEmpty()) {
+                if (!newValue.isEmpty()) {
+                    updating[0] = true;
+                    field.clear();
+                    updating[0] = false;
+                }
+                return;
+            }
+
+            String normalized = normalizeLeadingZeros(digits);
+            String formatted = formatDigits(normalized);
+            if (!formatted.equals(newValue)) {
+                updating[0] = true;
+                field.setText(formatted);
+                field.positionCaret(formatted.length());
+                updating[0] = false;
+            }
+        });
+    }
+
+    private double parseCurrency(String value) {
+        String digits = extractDigits(value);
+        if (digits.isBlank()) {
+            throw new NumberFormatException();
+        }
+        return Double.parseDouble(normalizeLeadingZeros(digits));
+    }
+
+    private String extractDigits(String value) {
+        return value == null ? "" : value.replaceAll("[^0-9]", "");
+    }
+
+    private String normalizeLeadingZeros(String digits) {
+        if (digits == null || digits.isBlank()) {
+            return "";
+        }
+        return digits.replaceFirst("^0+(?!$)", "");
+    }
+
+    private String formatDigits(String digits) {
+        if (digits == null || digits.isBlank()) {
+            return "";
+        }
+        NumberFormat formatter = NumberFormat.getNumberInstance(localeId);
+        formatter.setMaximumFractionDigits(0);
+        formatter.setMinimumFractionDigits(0);
+        return formatter.format(Long.parseLong(digits));
+    }
+
+    private String formatPlainCurrency(double value) {
+        return formatDigits(String.valueOf((long) value));
     }
 
     private String capitalize(String s) {

@@ -260,7 +260,7 @@ public class StockController implements Initializable {
 
         Button btnTambah = new Button("Tambah");
         btnTambah.setStyle(
-                "-fx-background-color: #111827; -fx-text-fill: white;" +
+                "-fx-background-color: linear-gradient(to right, #5B4BFF, #4F46E5); -fx-text-fill: white;" +
                         "-fx-background-radius: 8; -fx-cursor: hand;" +
                         "-fx-pref-height: 40; -fx-pref-width: 100;");
         btnTambah.setOnAction(e -> {
@@ -357,7 +357,7 @@ public class StockController implements Initializable {
 
         Button btnSimpan = new Button("Simpan");
         btnSimpan.setStyle(
-                "-fx-background-color: #111827; -fx-text-fill: white;" +
+                "-fx-background-color: linear-gradient(to right, #5B4BFF, #4F46E5); -fx-text-fill: white;" +
                         "-fx-background-radius: 8; -fx-cursor: hand;" +
                         "-fx-pref-height: 40; -fx-pref-width: 100;");
         btnSimpan.setOnAction(e -> {
