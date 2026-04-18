@@ -15,13 +15,14 @@ import javafx.scene.layout.VBox;
 
 import java.net.URL;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -183,7 +184,7 @@ public class LaporanController implements Initializable {
                 SELECT COALESCE(SUM(total), 0) AS total_penjualan,
                        COUNT(*) AS jumlah_transaksi
                 FROM transactions
-                WHERE DATE(tanggal) BETWEEN ? AND ?
+                WHERE date(tanggal) BETWEEN ? AND ?
                 """;
 
         try (PreparedStatement ps = preparePeriod(conn, sql);
@@ -203,7 +204,7 @@ public class LaporanController implements Initializable {
                 FROM transaction_detail td
                 JOIN transactions t ON td.id_transaksi = t.id_transaksi
                 JOIN menus m ON td.id_menu = m.id_menu
-                WHERE DATE(t.tanggal) BETWEEN ? AND ?
+                WHERE date(t.tanggal) BETWEEN ? AND ?
                 GROUP BY m.id_menu, m.nama_menu
                 ORDER BY total_nominal DESC, total_qty DESC
                 """;
@@ -230,14 +231,9 @@ public class LaporanController implements Initializable {
         String sql = """
                 SELECT t.id_transaksi,
                        t.tanggal,
-                       t.total,
-                       COALESCE(GROUP_CONCAT(m.nama_menu ORDER BY td.id_detail SEPARATOR ', '), '-') AS items,
-                       COALESCE(MAX(td.metode_pembayaran), '-') AS metode
+                       t.total
                 FROM transactions t
-                LEFT JOIN transaction_detail td ON t.id_transaksi = td.id_transaksi
-                LEFT JOIN menus m ON td.id_menu = m.id_menu
-                WHERE DATE(t.tanggal) BETWEEN ? AND ?
-                GROUP BY t.id_transaksi, t.tanggal, t.total
+                WHERE date(t.tanggal) BETWEEN ? AND ?
                 ORDER BY t.tanggal DESC, t.id_transaksi DESC
                 LIMIT 20
                 """;
@@ -247,10 +243,12 @@ public class LaporanController implements Initializable {
             boolean found = false;
             while (rs.next()) {
                 found = true;
+                TransactionSummary summary = loadTransactionSummary(conn, rs.getInt("id_transaksi"));
+                LocalDateTime tanggal = readDateTime(rs, "tanggal");
                 containerDetailTransaksi.getChildren().add(createTransactionRow(
-                        rs.getString("items"),
-                        rs.getDate("tanggal").toLocalDate().format(dateFormatter),
-                        formatMetode(rs.getString("metode")),
+                        summary.items(),
+                        tanggal == null ? "-" : tanggal.format(dateFormatter),
+                        formatMetode(summary.metode()),
                         rs.getDouble("total")
                 ));
             }
@@ -384,8 +382,8 @@ public class LaporanController implements Initializable {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tipe);
             ps.setString(2, status);
-            ps.setDate(3, Date.valueOf(dpMulai.getValue()));
-            ps.setDate(4, Date.valueOf(dpAkhir.getValue()));
+            ps.setString(3, dpMulai.getValue().toString());
+            ps.setString(4, dpAkhir.getValue().toString());
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? rs.getDouble(1) : 0;
             }
@@ -401,8 +399,8 @@ public class LaporanController implements Initializable {
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tipe);
-            ps.setDate(2, Date.valueOf(dpMulai.getValue()));
-            ps.setDate(3, Date.valueOf(dpAkhir.getValue()));
+            ps.setString(2, dpMulai.getValue().toString());
+            ps.setString(3, dpAkhir.getValue().toString());
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? rs.getDouble(1) : 0;
             }
@@ -421,8 +419,8 @@ public class LaporanController implements Initializable {
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tipe);
-            ps.setDate(2, Date.valueOf(dpMulai.getValue()));
-            ps.setDate(3, Date.valueOf(dpAkhir.getValue()));
+            ps.setString(2, dpMulai.getValue().toString());
+            ps.setString(3, dpAkhir.getValue().toString());
 
             try (ResultSet rs = ps.executeQuery()) {
                 boolean found = false;
@@ -431,7 +429,7 @@ public class LaporanController implements Initializable {
                     target.getChildren().add(createDebtRow(
                             rs.getString("nama"),
                             rs.getDouble("nominal"),
-                            rs.getDate("tanggal").toLocalDate().format(DateTimeFormatter.ofPattern("dd MMM", localeId)),
+                            readDate(rs, "tanggal").format(DateTimeFormatter.ofPattern("dd MMM", localeId)),
                             rs.getString("keterangan")
                     ));
                 }
@@ -446,8 +444,8 @@ public class LaporanController implements Initializable {
 
     private PreparedStatement preparePeriod(Connection conn, String sql) throws SQLException {
         PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setDate(1, Date.valueOf(dpMulai.getValue()));
-        ps.setDate(2, Date.valueOf(dpAkhir.getValue()));
+        ps.setString(1, dpMulai.getValue().toString());
+        ps.setString(2, dpAkhir.getValue().toString());
         return ps;
     }
 
@@ -638,6 +636,63 @@ public class LaporanController implements Initializable {
         return "Rp " + formatter.format(amount);
     }
 
+    private TransactionSummary loadTransactionSummary(Connection conn, int idTransaksi) throws SQLException {
+        String sql = """
+                SELECT m.nama_menu, td.metode_pembayaran
+                FROM transaction_detail td
+                JOIN menus m ON td.id_menu = m.id_menu
+                WHERE td.id_transaksi = ?
+                ORDER BY td.id_detail ASC
+                """;
+
+        StringBuilder items = new StringBuilder();
+        String metode = "-";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idTransaksi);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    if (!items.isEmpty()) {
+                        items.append(", ");
+                    }
+                    items.append(rs.getString("nama_menu"));
+                    if ("-".equals(metode)) {
+                        metode = rs.getString("metode_pembayaran");
+                    }
+                }
+            }
+        }
+
+        if (items.isEmpty()) {
+            items.append("Transaksi #").append(idTransaksi);
+        }
+
+        return new TransactionSummary(items.toString(), metode);
+    }
+
+    private LocalDate readDate(ResultSet rs, String column) throws SQLException {
+        String value = rs.getString(column);
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return LocalDate.parse(value);
+    }
+
+    private LocalDateTime readDateTime(ResultSet rs, String column) throws SQLException {
+        String value = rs.getString(column);
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            return LocalDateTime.parse(value.replace(" ", "T"));
+        } catch (DateTimeParseException ignored) {
+        }
+
+        java.sql.Timestamp timestamp = rs.getTimestamp(column);
+        return timestamp == null ? null : timestamp.toLocalDateTime();
+    }
+
     private String formatMetode(String metode) {
         if (metode == null) return "-";
         return switch (metode.toLowerCase()) {
@@ -646,4 +701,6 @@ public class LaporanController implements Initializable {
             default -> metode;
         };
     }
+
+    private record TransactionSummary(String items, String metode) {}
 }

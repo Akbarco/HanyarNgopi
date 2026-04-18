@@ -5,6 +5,8 @@ import com.pos.model.Transaksi;
 import com.pos.model.TransaksiDetail;
 
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +22,7 @@ public class TransaksiDAO {
     }
 
     public int insertTransaksi(Connection conn, Transaksi t) throws SQLException {
-        String sql = "INSERT INTO transactions (id_user, tanggal, total) VALUES (?, NOW(), ?)";
+        String sql = "INSERT INTO transactions (id_user, tanggal, total) VALUES (?, CURRENT_TIMESTAMP, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, t.getIdUser());
             ps.setInt(2, (int) Math.round(t.getTotal()));
@@ -64,12 +66,12 @@ public class TransaksiDAO {
         }
         try (conn;
              PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+            ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Transaksi t = new Transaksi();
                 t.setIdTransaksi(rs.getInt("id_transaksi"));
                 t.setIdUser(rs.getInt("id_user"));
-                t.setTanggal(rs.getTimestamp("tanggal").toLocalDateTime());
+                t.setTanggal(readDateTime(rs, "tanggal"));
                 t.setTotal(rs.getDouble("total"));
                 list.add(t);
             }
@@ -110,5 +112,20 @@ public class TransaksiDAO {
             e.printStackTrace();
         }
         return list;
+    }
+
+    private LocalDateTime readDateTime(ResultSet rs, String column) throws SQLException {
+        String value = rs.getString(column);
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            return LocalDateTime.parse(value.replace(" ", "T"));
+        } catch (DateTimeParseException ignored) {
+        }
+
+        Timestamp timestamp = rs.getTimestamp(column);
+        return timestamp == null ? null : timestamp.toLocalDateTime();
     }
 }

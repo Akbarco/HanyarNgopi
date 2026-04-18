@@ -16,7 +16,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -126,9 +128,8 @@ public class DashboardHomeController implements Initializable {
             while (rs.next()) {
                 found = true;
                 int idTransaksi = rs.getInt("id_transaksi");
-                String tanggal = rs.getTimestamp("tanggal")
-                        .toLocalDateTime()
-                        .format(dateFormatter);
+                LocalDateTime waktuTransaksi = readDateTime(rs, "tanggal");
+                String tanggal = waktuTransaksi == null ? "-" : waktuTransaksi.format(dateFormatter);
                 double total = rs.getDouble("total");
                 TransactionSnapshot snapshot = loadTransactionSnapshot(conn, idTransaksi);
                 containerTransaksiBaru.getChildren().add(createTransactionCard(
@@ -296,6 +297,21 @@ public class DashboardHomeController implements Initializable {
         if (label != null) {
             label.setText(text);
         }
+    }
+
+    private LocalDateTime readDateTime(ResultSet rs, String column) throws SQLException {
+        String value = rs.getString(column);
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            return LocalDateTime.parse(value.replace(" ", "T"));
+        } catch (DateTimeParseException ignored) {
+        }
+
+        java.sql.Timestamp timestamp = rs.getTimestamp(column);
+        return timestamp == null ? null : timestamp.toLocalDateTime();
     }
 
     private record TransactionSnapshot(String title, String paymentMethod) {}

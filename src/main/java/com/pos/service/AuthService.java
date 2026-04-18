@@ -9,8 +9,8 @@ public class AuthService {
     private static User loggedInUser = null;
 
     public void initDefaultUsers() {
-        userDAO.insertIfNotExists("admin", "admin123");
-        userDAO.insertIfNotExists("owner", "owner123");
+        userDAO.insertIfNotExists("admin", "123");
+        userDAO.insertIfNotExists("owner", "123");
     }
 
     public User login(String username, String password) {

@@ -43,7 +43,7 @@ public class StockDAO {
     }
 
     public Stock findByIdMenu(Connection conn, int idMenu) throws SQLException {
-        String sql = "SELECT * FROM stock WHERE id_menu = ? FOR UPDATE";
+        String sql = "SELECT * FROM stock WHERE id_menu = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idMenu);
             ResultSet rs = ps.executeQuery();
@@ -103,20 +103,25 @@ public class StockDAO {
         }
     }
 
-    public void decreaseStock(int idMenu, int qty) {
+    public boolean decreaseStock(int idMenu, int qty) {
         try (Connection conn = koneksi.getConnection()) {
-            decreaseStock(conn, idMenu, qty);
+            if (conn == null) {
+                return false;
+            }
+            return decreaseStock(conn, idMenu, qty);
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
-    public void decreaseStock(Connection conn, int idMenu, int qty) throws SQLException {
-        String sql = "UPDATE stock SET jumlah_stok = jumlah_stok - ? WHERE id_menu = ?";
+    public boolean decreaseStock(Connection conn, int idMenu, int qty) throws SQLException {
+        String sql = "UPDATE stock SET jumlah_stok = jumlah_stok - ? WHERE id_menu = ? AND jumlah_stok >= ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, qty);
             ps.setInt(2, idMenu);
-            ps.executeUpdate();
+            ps.setInt(3, qty);
+            return ps.executeUpdate() > 0;
         }
     }
 

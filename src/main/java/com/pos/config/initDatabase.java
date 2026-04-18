@@ -6,96 +6,100 @@ import java.sql.Statement;
 public class initDatabase {
 
     public static void init () {
-        try (Connection conn = koneksi.getConnection();
-             Statement stmt = conn.createStatement()) {
+        try (Connection conn = koneksi.getConnection()) {
+            if (conn == null) {
+                return;
+            }
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute("PRAGMA foreign_keys = ON");
 
-            // USERS
-            stmt.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS users (
-                    id_user INT AUTO_INCREMENT PRIMARY KEY,
-                    username VARCHAR(100),
-                    password VARCHAR(255),
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """);
+                stmt.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS users (
+                        id_user INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT,
+                        password TEXT,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )
+                """);
 
-            // MENUS
-            stmt.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS menus (
-                    id_menu INT AUTO_INCREMENT PRIMARY KEY,
-                    nama_menu VARCHAR(100),
-                    harga INT,
-                    kategori ENUM('makanan','minuman','stok'),
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """);
+                stmt.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS menus (
+                        id_menu INTEGER PRIMARY KEY AUTOINCREMENT,
+                        nama_menu TEXT,
+                        harga INTEGER,
+                        kategori TEXT CHECK (kategori IN ('makanan','minuman','snack')),
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )
+                """);
 
-            // STOCK
-            stmt.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS stock (
-                    id_stok INT AUTO_INCREMENT PRIMARY KEY,
-                    id_menu INT,
-                    jumlah_stok INT,
-                    satuan ENUM('kg','g','liter','ml','pcs','box','sachet','botol'),
-                    stok_minimum INT DEFAULT 0,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (id_menu) REFERENCES menus(id_menu)
-                )
-            """);
+                stmt.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS debts (
+                        id_debt INTEGER PRIMARY KEY AUTOINCREMENT,
+                        nama TEXT,
+                        tipe TEXT CHECK (tipe IN ('hutang','piutang')),
+                        nominal INTEGER,
+                        tanggal TEXT,
+                        status TEXT CHECK (status IN ('lunas','belum')),
+                        keterangan TEXT,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )
+                """);
 
-            // TRANSACTIONS
-            stmt.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS transactions (
-                    id_transaksi INT AUTO_INCREMENT PRIMARY KEY,
-                    id_user INT,
-                    tanggal DATETIME,
-                    total INT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (id_user) REFERENCES users(id_user)
-                )
-            """);
+                stmt.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS transactions (
+                        id_transaksi INTEGER PRIMARY KEY AUTOINCREMENT,
+                        id_user INTEGER,
+                        tanggal DATETIME,
+                        total INTEGER,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (id_user) REFERENCES users(id_user) ON DELETE RESTRICT ON UPDATE RESTRICT
+                    )
+                """);
 
-            // TRANSACTION DETAIL
-            stmt.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS transaction_detail (
-                    id_detail INT AUTO_INCREMENT PRIMARY KEY,
-                    id_transaksi INT,
-                    id_menu INT,
-                    qty INT,
-                    subtotal INT,
-                    metode_pembayaran ENUM('cash','qris'),
-                    FOREIGN KEY (id_transaksi) REFERENCES transactions(id_transaksi),
-                    FOREIGN KEY (id_menu) REFERENCES menus(id_menu)
-                )
-            """);
+                stmt.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS stock (
+                        id_stok INTEGER PRIMARY KEY AUTOINCREMENT,
+                        id_menu INTEGER,
+                        jumlah_stok INTEGER,
+                        satuan TEXT CHECK (satuan IN ('kg','g','liter','ml','pcs','box','sachet','botol')),
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        stok_minimum INTEGER DEFAULT 0,
+                        FOREIGN KEY (id_menu) REFERENCES menus(id_menu) ON DELETE RESTRICT ON UPDATE RESTRICT
+                    )
+                """);
 
-            // DEBTS
-            stmt.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS debts (
-                    id_debt INT AUTO_INCREMENT PRIMARY KEY,
-                    nama VARCHAR(100),
-                    tipe ENUM('hutang','piutang'),
-                    nominal INT,
-                    tanggal DATE,
-                    status ENUM('lunas','belum'),
-                    keterangan VARCHAR(255),
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """);
+                stmt.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS transaction_detail (
+                        id_detail INTEGER PRIMARY KEY AUTOINCREMENT,
+                        id_transaksi INTEGER,
+                        id_menu INTEGER,
+                        qty INTEGER,
+                        subtotal INTEGER,
+                        metode_pembayaran TEXT CHECK (metode_pembayaran IN ('cash','qris')),
+                        FOREIGN KEY (id_transaksi) REFERENCES transactions(id_transaksi) ON DELETE RESTRICT ON UPDATE RESTRICT,
+                        FOREIGN KEY (id_menu) REFERENCES menus(id_menu) ON DELETE RESTRICT ON UPDATE RESTRICT
+                    )
+                """);
 
-            // PAYMENT
-            stmt.executeUpdate("""
-                CREATE TABLE IF NOT EXISTS payment (
-                    id_payment INT AUTO_INCREMENT PRIMARY KEY,
-                    id_debt INT,
-                    tanggal_bayar DATE,
-                    jumlah_bayar INT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (id_debt) REFERENCES debts(id_debt)
-                )
-            """);
+                stmt.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS payment (
+                        id_payment INTEGER PRIMARY KEY AUTOINCREMENT,
+                        id_debt INTEGER,
+                        tanggal_bayar TEXT,
+                        jumlah_bayar INTEGER,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (id_debt) REFERENCES debts(id_debt) ON DELETE RESTRICT ON UPDATE RESTRICT
+                    )
+                """);
 
-            System.out.println("Database + ENUM berhasil dibuat!");
+                stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_stock_id_menu ON stock(id_menu)");
+                stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_transactions_id_user ON transactions(id_user)");
+                stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_transaction_detail_id_transaksi ON transaction_detail(id_transaksi)");
+                stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_transaction_detail_id_menu ON transaction_detail(id_menu)");
+                stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_payment_id_debt ON payment(id_debt)");
+
+                System.out.println("Database SQLite berhasil dibuat di: " + koneksi.getDatabasePath());
+            }
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());

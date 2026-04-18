@@ -4,10 +4,13 @@ import com.pos.config.koneksi;
 import com.pos.model.Debt;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +61,7 @@ public class DebtDAO {
             ps.setString(1, debt.getNama());
             ps.setString(2, debt.getTipe());
             ps.setInt(3, (int) Math.round(debt.getNominal()));
-            ps.setDate(4, Date.valueOf(debt.getTanggal()));
+            ps.setString(4, debt.getTanggal() == null ? null : debt.getTanggal().toString());
             ps.setString(5, debt.getStatus());
             ps.setString(6, debt.getKeterangan());
             ps.executeUpdate();
@@ -101,7 +104,7 @@ public class DebtDAO {
         String updateDebtSql = "UPDATE debts SET status = 'lunas' WHERE id_debt = ?";
         String insertPaymentSql = """
             INSERT INTO payment (id_debt, tanggal_bayar, jumlah_bayar)
-            VALUES (?, CURDATE(), ?)
+            VALUES (?, ?, ?)
             """;
 
         try (Connection conn = koneksi.getConnection()) {
@@ -116,7 +119,8 @@ public class DebtDAO {
                 psDebt.executeUpdate();
 
                 psPayment.setInt(1, debt.getIdDebt());
-                psPayment.setInt(2, (int) Math.round(debt.getNominal()));
+                psPayment.setString(2, LocalDate.now().toString());
+                psPayment.setInt(3, (int) Math.round(debt.getNominal()));
                 psPayment.executeUpdate();
 
                 conn.commit();
@@ -189,10 +193,33 @@ public class DebtDAO {
         debt.setNama(rs.getString("nama"));
         debt.setTipe(rs.getString("tipe"));
         debt.setNominal(rs.getDouble("nominal"));
-        debt.setTanggal(rs.getDate("tanggal").toLocalDate());
+        debt.setTanggal(readDate(rs, "tanggal"));
         debt.setStatus(rs.getString("status"));
         debt.setKeterangan(rs.getString("keterangan"));
-        debt.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        debt.setCreatedAt(readDateTime(rs, "created_at"));
         return debt;
+    }
+
+    private LocalDate readDate(ResultSet rs, String column) throws SQLException {
+        String value = rs.getString(column);
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return LocalDate.parse(value);
+    }
+
+    private LocalDateTime readDateTime(ResultSet rs, String column) throws SQLException {
+        String value = rs.getString(column);
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            return LocalDateTime.parse(value.replace(" ", "T"));
+        } catch (DateTimeParseException ignored) {
+        }
+
+        Timestamp timestamp = rs.getTimestamp(column);
+        return timestamp == null ? null : timestamp.toLocalDateTime();
     }
 }

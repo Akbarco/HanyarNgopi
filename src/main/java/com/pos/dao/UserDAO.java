@@ -4,6 +4,8 @@ import com.pos.config.koneksi;
 import com.pos.model.User;
 
 import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 
 public class UserDAO {
 
@@ -18,7 +20,7 @@ public class UserDAO {
                 user.setIdUser(rs.getInt("id_user"));
                 user.setUsername(rs.getString("username"));
                 user.setPassword(rs.getString("password"));
-                user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                user.setCreatedAt(readDateTime(rs, "created_at"));
                 return user;
             }
         } catch (SQLException e) {
@@ -44,5 +46,20 @@ public class UserDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private LocalDateTime readDateTime(ResultSet rs, String column) throws SQLException {
+        String value = rs.getString(column);
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            return LocalDateTime.parse(value.replace(" ", "T"));
+        } catch (DateTimeParseException ignored) {
+        }
+
+        Timestamp timestamp = rs.getTimestamp(column);
+        return timestamp == null ? null : timestamp.toLocalDateTime();
     }
 }

@@ -84,7 +84,10 @@ public class KasirService {
                     detail.setIdTransaksi(idTransaksi);
                     detail.setMetodePembayaran(metodePembayaran);
                     transaksiDAO.insertDetail(conn, detail);
-                    stockDAO.decreaseStock(conn, detail.getIdMenu(), detail.getQty());
+                    boolean updated = stockDAO.decreaseStock(conn, detail.getIdMenu(), detail.getQty());
+                    if (!updated) {
+                        throw new IllegalStateException("Stok tidak cukup untuk menyelesaikan transaksi.");
+                    }
                 }
 
                 conn.commit();
