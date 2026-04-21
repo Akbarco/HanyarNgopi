@@ -14,6 +14,7 @@ public class StockDAO {
         String sql = """
             SELECT s.*, m.nama_menu FROM stock s
             JOIN menus m ON s.id_menu = m.id_menu
+            WHERE m.is_active = 1
             ORDER BY m.nama_menu
             """;
         Connection conn = koneksi.getConnection();

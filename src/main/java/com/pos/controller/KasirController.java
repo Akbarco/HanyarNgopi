@@ -8,6 +8,7 @@ import com.pos.model.TransaksiDetail;
 import com.pos.service.AuthService;
 import com.pos.service.KasirService;
 import com.pos.util.AlertUtil;
+import com.pos.util.ToastUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -202,14 +203,7 @@ public class KasirController implements Initializable {
         Label lblTitle = new Label("Transaksi Baru");
         lblTitle.getStyleClass().add("dialog-title");
 
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-
-        Button btnClose = new Button("×");
-        btnClose.getStyleClass().add("dialog-close");
-        btnClose.setOnAction(event -> dialog.close());
-
-        header.getChildren().addAll(lblTitle, headerSpacer, btnClose);
+        header.getChildren().add(lblTitle);
 
         HBox inputRow = new HBox(18);
         inputRow.setAlignment(Pos.BOTTOM_LEFT);
@@ -219,7 +213,7 @@ public class KasirController implements Initializable {
         Label lblPilihMenu = fieldLabel("Pilih Menu");
 
         ComboBox<Menu> cmbMenu = new ComboBox<>();
-        cmbMenu.setItems(FXCollections.observableArrayList(menuDAO.findAll()));
+        cmbMenu.setItems(FXCollections.observableArrayList(menuDAO.findByActive(true)));
         cmbMenu.setPromptText("Pilih menu");
         cmbMenu.setMaxWidth(Double.MAX_VALUE);
         cmbMenu.getStyleClass().add("combo-input");
@@ -374,10 +368,10 @@ public class KasirController implements Initializable {
                 );
 
                 if (success) {
-                    AlertUtil.showInfo("Berhasil",
-                            "Transaksi berhasil!\nTotal: " + formatCurrency(total));
                     dialog.close();
                     loadRiwayat();
+                    ToastUtil.showSuccess(dialog,
+                            "Transaksi berhasil. Total: " + formatCurrency(total));
                 } else {
                     AlertUtil.showError("Error", "Gagal menyimpan transaksi!");
                 }

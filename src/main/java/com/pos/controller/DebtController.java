@@ -3,6 +3,7 @@ package com.pos.controller;
 import com.pos.dao.DebtDAO;
 import com.pos.model.Debt;
 import com.pos.util.AlertUtil;
+import com.pos.util.ToastUtil;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.HPos;
@@ -321,8 +322,8 @@ public class DebtController implements Initializable {
         }
 
         debtDAO.delete(debt.getIdDebt());
-        AlertUtil.showInfo("Sukses", label + " berhasil dihapus.");
         refreshData();
+        ToastUtil.showSuccess(containerDaftar, label + " berhasil dihapus.");
     }
 
     private void handleMarkAsPaid(Debt debt) {
@@ -333,8 +334,8 @@ public class DebtController implements Initializable {
         }
 
         debtDAO.markAsPaid(debt);
-        AlertUtil.showInfo("Sukses", label + " berhasil ditandai lunas.");
         refreshData();
+        ToastUtil.showSuccess(containerDaftar, label + " berhasil ditandai lunas.");
     }
 
     private void showDebtDialog(String tipe) {
@@ -351,8 +352,8 @@ public class DebtController implements Initializable {
         dialog.setTitle(title);
         dialog.setResizable(false);
 
-        VBox root = new VBox(18);
-        root.setPadding(new Insets(28));
+        VBox root = new VBox(20);
+        root.setPadding(new Insets(28, 30, 30, 30));
         root.getStyleClass().add("dialog-root");
 
         HBox header = new HBox();
@@ -370,15 +371,16 @@ public class DebtController implements Initializable {
         TextArea txtKeterangan = new TextArea();
         txtKeterangan.setPromptText("Keterangan singkat");
         txtKeterangan.setWrapText(true);
-        txtKeterangan.setPrefRowCount(4);
-        txtKeterangan.getStyleClass().add("dialog-text-area");
+        txtKeterangan.getStyleClass().add("text-area");
 
         Button btnBatal = new Button("Batal");
         btnBatal.getStyleClass().add("secondary-button");
+        btnBatal.setPrefWidth(96);
         btnBatal.setOnAction(event -> dialog.close());
 
         Button btnSubmit = new Button("Tambah");
         btnSubmit.getStyleClass().add("primary-button");
+        btnSubmit.setPrefWidth(130);
         btnSubmit.setOnAction(event -> {
             String nama = txtNama.getText().trim();
             String nominalText = txtNominal.getText().trim();
@@ -411,10 +413,10 @@ public class DebtController implements Initializable {
 
             debtDAO.insert(debt);
             activeType = tipe;
-            AlertUtil.showInfo("Sukses",
-                    capitalize(tipe) + " baru berhasil ditambahkan.");
             dialog.close();
             refreshData();
+            ToastUtil.showSuccess(dialog,
+                    capitalize(tipe) + " baru berhasil ditambahkan.");
         });
 
         HBox buttonBox = new HBox(10, btnBatal, btnSubmit);
@@ -422,14 +424,14 @@ public class DebtController implements Initializable {
 
         root.getChildren().addAll(
                 header,
-                fieldLabel(namaLabel), txtNama,
-                fieldLabel("Nominal (Rp)"), txtNominal,
-                fieldLabel("Tanggal"), datePicker,
-                fieldLabel("Keterangan"), txtKeterangan,
+                fieldGroup(namaLabel, txtNama),
+                fieldGroup("Nominal (Rp)", txtNominal),
+                fieldGroup("Tanggal", datePicker),
+                fieldGroup("Keterangan", txtKeterangan),
                 buttonBox
         );
 
-        Scene scene = new Scene(root, 560, 520);
+        Scene scene = new Scene(root, 680, 560);
         scene.getStylesheets().add(getClass().getResource("/com/pos/view/css/menu.css").toExternalForm());
         dialog.setScene(scene);
         dialog.showAndWait();
@@ -441,17 +443,23 @@ public class DebtController implements Initializable {
         return label;
     }
 
+    private VBox fieldGroup(String labelText, Region input) {
+        VBox group = new VBox(8, fieldLabel(labelText), input);
+        input.setMaxWidth(Double.MAX_VALUE);
+        return group;
+    }
+
     private TextField createTextField(String promptText) {
         TextField textField = new TextField();
         textField.setPromptText(promptText);
-        textField.getStyleClass().add("dialog-field");
+        textField.getStyleClass().add("text-input");
         return textField;
     }
 
     private DatePicker createDatePicker() {
         DatePicker datePicker = new DatePicker();
         datePicker.setMaxWidth(Double.MAX_VALUE);
-        datePicker.getStyleClass().add("dialog-date-input");
+        datePicker.getStyleClass().add("date-input");
         datePicker.setConverter(new StringConverter<>() {
             @Override
             public String toString(LocalDate date) {

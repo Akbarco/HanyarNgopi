@@ -54,6 +54,14 @@
     -fx-text-fill: #EF4444;
 }
 
+.table-action-button-archive {
+    -fx-text-fill: #B45309;
+}
+
+.table-action-button-restore {
+    -fx-text-fill: #16A34A;
+}
+
 .table-action-button:hover {
     -fx-background-color: #F8FAFC;
 }
@@ -514,6 +522,51 @@
     -fx-font-size: 16;
     -fx-font-weight: bold;
     -fx-text-fill: #111827;
+}
+
+.surface-card-caption {
+    -fx-font-size: 12;
+    -fx-text-fill: #64748B;
+}
+
+.menu-table-toolbar {
+    -fx-padding: 0 0 4 0;
+}
+
+.menu-segmented-control {
+    -fx-background-color: #F1F5F9;
+    -fx-background-radius: 999;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 999;
+    -fx-border-width: 1;
+}
+
+.menu-segment,
+.menu-segment-active {
+    -fx-background-radius: 999;
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-font-size: 12;
+    -fx-font-weight: bold;
+    -fx-pref-height: 36;
+    -fx-padding: 0 18 0 18;
+}
+
+.menu-segment {
+    -fx-background-color: transparent;
+    -fx-text-fill: #64748B;
+}
+
+.menu-segment:hover {
+    -fx-text-fill: #4F46E5;
+    -fx-background-color: #E8EDFF;
+}
+
+.menu-segment-active {
+    -fx-background-color: linear-gradient(to right, #5B4BFF, #4F46E5);
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(79,70,229,0.24), 10, 0, 0, 2);
 }
 
 .table-wrapper {

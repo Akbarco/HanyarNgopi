@@ -5,14 +5,20 @@ public class Menu {
     private String namaMenu;
     private double harga;
     private String kategori;
+    private boolean active = true;
 
     public Menu() {}
 
     public Menu(int idMenu, String namaMenu, double harga, String kategori) {
+        this(idMenu, namaMenu, harga, kategori, true);
+    }
+
+    public Menu(int idMenu, String namaMenu, double harga, String kategori, boolean active) {
         this.idMenu = idMenu;
         this.namaMenu = namaMenu;
         this.harga = harga;
         this.kategori = kategori;
+        this.active = active;
     }
 
     public int getIdMenu() { return idMenu; }
@@ -26,6 +32,9 @@ public class Menu {
 
     public String getKategori() { return kategori; }
     public void setKategori(String kategori) { this.kategori = kategori; }
+
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
 
     @Override
     public String toString() { return namaMenu; }

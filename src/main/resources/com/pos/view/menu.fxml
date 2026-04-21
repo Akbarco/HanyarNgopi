@@ -19,7 +19,7 @@
     <HBox alignment="CENTER_LEFT" styleClass="page-shell">
         <VBox HBox.hgrow="ALWAYS" spacing="4">
             <Label text="Kelola Menu" styleClass="page-header-title"/>
-            <Label text="Tambah, edit, dan hapus menu" styleClass="page-header-subtitle"/>
+            <Label text="Tambah menu aktif, arsipkan yang sudah tidak dijual, dan aktifkan kembali kapan saja" styleClass="page-header-subtitle"/>
         </VBox>
 
         <Button text="+ Tambah Menu"
@@ -30,9 +30,26 @@
     <VBox VBox.vgrow="ALWAYS" styleClass="surface-card">
         <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
 
-        <HBox alignment="CENTER_LEFT">
+        <HBox alignment="CENTER_LEFT" spacing="18" styleClass="menu-table-toolbar">
             <VBox.margin><Insets bottom="12"/></VBox.margin>
-            <Label text="Daftar Menu" HBox.hgrow="ALWAYS" styleClass="surface-card-header"/>
+            <VBox spacing="3" HBox.hgrow="ALWAYS">
+                <Label fx:id="lblTableTitle" text="Daftar Menu Aktif" styleClass="surface-card-header"/>
+                <Label text="Kelola menu yang tampil di operasional harian" styleClass="surface-card-caption"/>
+            </VBox>
+
+            <HBox styleClass="menu-segmented-control" spacing="4">
+                <padding><Insets top="4" right="4" bottom="4" left="4"/></padding>
+
+                <Button fx:id="btnTabAktif"
+                        text="Aktif"
+                        onAction="#openTabAktif"
+                        styleClass="menu-segment-active"/>
+
+                <Button fx:id="btnTabArsip"
+                        text="Diarsipkan"
+                        onAction="#openTabArsip"
+                        styleClass="menu-segment"/>
+            </HBox>
         </HBox>
 
         <VBox VBox.vgrow="ALWAYS" styleClass="table-wrapper">
@@ -47,7 +64,8 @@
                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                 </columnResizePolicy>
                 <placeholder>
-                    <Label text="Belum ada data menu"
+                    <Label fx:id="lblPlaceholder"
+                           text="Belum ada menu aktif"
                            styleClass="placeholder-text"/>
                 </placeholder>
             </TableView>

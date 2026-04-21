@@ -1,6 +1,7 @@
 package com.pos.util;
 
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
 
@@ -8,32 +9,24 @@ import java.util.Optional;
 
 public class AlertUtil {
 
-    public static void showInfo(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        styleAlert(alert);
-        alert.showAndWait();
-    }
-
     public static void showError(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        styleAlert(alert);
+        Alert alert = buildAlert(Alert.AlertType.ERROR, title, message);
         alert.showAndWait();
     }
 
     public static boolean showConfirm(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        Alert alert = buildAlert(Alert.AlertType.CONFIRMATION, title, message);
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
+    }
+
+    private static Alert buildAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         styleAlert(alert);
-        Optional<ButtonType> result = alert.showAndWait();
-        return result.isPresent() && result.get() == ButtonType.OK;
+        return alert;
     }
 
     private static void styleAlert(Alert alert) {
@@ -48,7 +41,10 @@ public class AlertUtil {
         dp.setGraphic(null);
 
         dp.getButtonTypes().forEach(bt -> {
-            var btn = dp.lookupButton(bt);
+            var node = dp.lookupButton(bt);
+            if (!(node instanceof ButtonBase btn)) {
+                return;
+            }
             if (bt == ButtonType.OK) {
                 btn.setStyle(
                         "-fx-background-color: #111827;" +
@@ -60,6 +56,7 @@ public class AlertUtil {
                                 "-fx-font-weight: bold;"
                 );
             } else if (bt == ButtonType.CANCEL) {
+                btn.setText("Batal");
                 btn.setStyle(
                         "-fx-background-color: #F3F4F6;" +
                                 "-fx-text-fill: #374151;" +

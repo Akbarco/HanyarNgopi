@@ -42,6 +42,7 @@
             </Label>
             <PasswordField fx:id="txtPassword"
                            promptText="Masukkan password"
+                           onAction="#handleLogin"
                            styleClass="input-field"/>
 
             <Button text="Masuk" onAction="#handleLogin"

@@ -130,19 +130,21 @@
         </VBox>
 
         <VBox fx:id="panelStok" spacing="24" visible="false" managed="false">
-            <FlowPane hgap="20" vgap="16">
-                <VBox prefWidth="430" minHeight="250" spacing="18" styleClass="report-stock-warning-card">
+            <HBox spacing="20">
+                <VBox minWidth="320" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                      minHeight="250" spacing="18" styleClass="report-stock-warning-card">
                     <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
                     <Label text="Stok Menipis" styleClass="report-stock-warning-title"/>
                     <VBox fx:id="containerStokMenipis" spacing="10"/>
                 </VBox>
 
-                <VBox prefWidth="430" minHeight="250" spacing="18" styleClass="report-stock-safe-card">
+                <VBox minWidth="320" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                      minHeight="250" spacing="18" styleClass="report-stock-safe-card">
                     <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
                     <Label text="Stok Aman" styleClass="report-stock-safe-title"/>
                     <VBox fx:id="containerStokAman" spacing="10"/>
                 </VBox>
-            </FlowPane>
+            </HBox>
 
             <VBox spacing="18" styleClass="report-section-card">
                 <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>

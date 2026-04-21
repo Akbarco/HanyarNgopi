@@ -5,6 +5,7 @@ import com.pos.model.Menu;
 import com.pos.model.Stock;
 import com.pos.service.StockService;
 import com.pos.util.AlertUtil;
+import com.pos.util.ToastUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -156,8 +157,8 @@ public class StockController implements Initializable {
                     if (AlertUtil.showConfirm("Hapus Stock",
                             "Yakin hapus stock \"" + stock.getNamaMenu() + "\"?")) {
                         stockService.deleteStock(stock.getIdStok());
-                        AlertUtil.showInfo("Sukses", "Stock berhasil dihapus!");
                         loadData();
+                        ToastUtil.showSuccess(btnHapus, "Stok berhasil dihapus.");
                     }
                 });
             }
@@ -192,6 +193,9 @@ public class StockController implements Initializable {
     private void showTambahDialog() {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
+        if (tableStock != null && tableStock.getScene() != null) {
+            dialog.initOwner(tableStock.getScene().getWindow());
+        }
         dialog.setTitle("Tambah Stok Baru");
         dialog.setResizable(false);
 
@@ -206,7 +210,7 @@ public class StockController implements Initializable {
         // Menu
         Label lblMenu = fieldLabel("Menu");
         ComboBox<Menu> cmbMenu = new ComboBox<>();
-        cmbMenu.setItems(FXCollections.observableArrayList(menuDAO.findAll()));
+        cmbMenu.setItems(FXCollections.observableArrayList(menuDAO.findByActive(true)));
         cmbMenu.setPromptText("Pilih menu");
         cmbMenu.setMaxWidth(Double.MAX_VALUE);
         cmbMenu.setStyle(inputStyle());
@@ -286,9 +290,9 @@ public class StockController implements Initializable {
 
             Stock stock = new Stock(0, menu.getIdMenu(), jumlah, satuan, min);
             stockService.tambahStock(stock);
-            AlertUtil.showInfo("Sukses", "Stock berhasil ditambahkan!");
             dialog.close();
             loadData();
+            ToastUtil.showSuccess(dialog, "Stok berhasil ditambahkan.");
         });
 
         HBox btnBox = new HBox(10, btnBatal, btnTambah);
@@ -309,6 +313,9 @@ public class StockController implements Initializable {
     private void showEditDialog(Stock stock) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
+        if (tableStock != null && tableStock.getScene() != null) {
+            dialog.initOwner(tableStock.getScene().getWindow());
+        }
         dialog.setTitle("Edit Stok");
         dialog.setResizable(false);
 
@@ -384,9 +391,9 @@ public class StockController implements Initializable {
             stock.setSatuan(satuan);
             stock.setStokMinimum(min);
             stockService.updateStock(stock);
-            AlertUtil.showInfo("Sukses", "Stock berhasil diupdate!");
             dialog.close();
             loadData();
+            ToastUtil.showSuccess(dialog, "Stok berhasil diupdate.");
         });
 
         HBox btnBox = new HBox(10, btnBatal, btnSimpan);

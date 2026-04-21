@@ -3,6 +3,7 @@ package com.pos.controller;
 import com.pos.dao.MenuDAO;
 import com.pos.model.Menu;
 import com.pos.util.AlertUtil;
+import com.pos.util.ToastUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -27,10 +28,15 @@ public class MenuController implements Initializable {
     @FXML private TableColumn<Menu, String> colKategori;
     @FXML private TableColumn<Menu, Double> colHarga;
     @FXML private TableColumn<Menu, Void> colAksi;
+    @FXML private Label lblTableTitle;
+    @FXML private Label lblPlaceholder;
+    @FXML private Button btnTabAktif;
+    @FXML private Button btnTabArsip;
 
     private final MenuDAO menuDAO = new MenuDAO();
     private final ObservableList<Menu> menuList = FXCollections.observableArrayList();
     private final Locale localeId = new Locale("id", "ID");
+    private boolean activeView = true;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -93,7 +99,7 @@ public class MenuController implements Initializable {
                 Label badge = new Label(item);
                 String bg, fg;
                 switch (item.toLowerCase()) {
-                    case "makanan" -> { bg = "#EEF2FF"; fg = "#4F46E5"; }
+                    case "makanan" -> { bg = "#FFF7ED"; fg = "#EA580C"; }
                     case "minuman" -> { bg = "#DBEAFE"; fg = "#2563EB"; }
                     default ->        { bg = "#F0FDF4"; fg = "#16A34A"; }
                 }
@@ -112,25 +118,37 @@ public class MenuController implements Initializable {
         // Kolom aksi
         colAksi.setCellFactory(col -> new TableCell<>() {
             private final Button btnEdit = new Button("Edit");
-            private final Button btnHapus = new Button("Hapus");
+            private final Button btnArchive = new Button("Arsipkan");
+            private final Button btnRestore = new Button("Aktifkan");
 
             {
                 btnEdit.getStyleClass().addAll("table-action-button", "table-action-button-edit");
-                btnHapus.getStyleClass().addAll("table-action-button", "table-action-button-delete");
+                btnArchive.getStyleClass().addAll("table-action-button", "table-action-button-archive");
+                btnRestore.getStyleClass().addAll("table-action-button", "table-action-button-restore");
 
                 btnEdit.setOnAction(e -> {
-                    Menu menu = getTableView().getItems().get(getIndex());
+                    Menu menu = getCurrentMenu();
+                    if (menu == null) return;
                     showEditDialog(menu);
                 });
 
-                btnHapus.setOnAction(e -> {
-                    Menu menu = getTableView().getItems().get(getIndex());
-                    if (AlertUtil.showConfirm("Hapus Menu",
-                            "Yakin hapus \"" + menu.getNamaMenu() + "\"?")) {
-                        menuDAO.delete(menu.getIdMenu());
-                        AlertUtil.showInfo("Sukses", "Menu berhasil dihapus!");
+                btnArchive.setOnAction(e -> {
+                    Menu menu = getCurrentMenu();
+                    if (menu == null) return;
+                    if (AlertUtil.showConfirm("Arsipkan Menu",
+                            "Arsipkan \"" + menu.getNamaMenu() + "\"?\nMenu disembunyikan dari daftar aktif.")) {
+                        menuDAO.archive(menu.getIdMenu());
                         loadData();
+                        ToastUtil.showSuccess(tableMenu, "Menu berhasil diarsipkan.");
                     }
+                });
+
+                btnRestore.setOnAction(e -> {
+                    Menu menu = getCurrentMenu();
+                    if (menu == null) return;
+                    menuDAO.activate(menu.getIdMenu());
+                    loadData();
+                    ToastUtil.showSuccess(tableMenu, "Menu berhasil diaktifkan kembali.");
                 });
             }
 
@@ -140,7 +158,13 @@ public class MenuController implements Initializable {
                 if (empty) {
                     setGraphic(null);
                 } else {
-                    HBox box = new HBox(8, btnEdit, btnHapus);
+                    HBox box = new HBox(8);
+                    Menu menu = getCurrentMenu();
+                    if (menu != null && menu.isActive()) {
+                        box.getChildren().addAll(btnEdit, btnArchive);
+                    } else {
+                        box.getChildren().add(btnRestore);
+                    }
                     box.setAlignment(Pos.CENTER_RIGHT);
                     box.setMaxWidth(Double.MAX_VALUE);
                     setGraphic(box);
@@ -148,17 +172,58 @@ public class MenuController implements Initializable {
                     setAlignment(Pos.CENTER_RIGHT);
                 }
             }
+
+            private Menu getCurrentMenu() {
+                int index = getIndex();
+                if (index < 0 || index >= getTableView().getItems().size()) {
+                    return null;
+                }
+                return getTableView().getItems().get(index);
+            }
         });
     }
 
     private void loadData() {
-        menuList.setAll(menuDAO.findAll());
+        menuList.setAll(activeView ? menuDAO.findByActive(true) : menuDAO.findArchived());
         tableMenu.setItems(menuList);
+        updateMenuTabs();
     }
 
     @FXML
     public void handleTambahMenu() {
         showTambahDialog();
+    }
+
+    @FXML
+    public void openTabAktif() {
+        activeView = true;
+        loadData();
+    }
+
+    @FXML
+    public void openTabArsip() {
+        activeView = false;
+        loadData();
+    }
+
+    private void updateMenuTabs() {
+        if (lblTableTitle != null) {
+            lblTableTitle.setText(activeView ? "Daftar Menu Aktif" : "Menu Diarsipkan");
+        }
+        if (lblPlaceholder != null) {
+            lblPlaceholder.setText(activeView
+                    ? "Belum ada menu aktif"
+                    : "Belum ada menu yang diarsipkan");
+        }
+        if (btnTabAktif != null && btnTabArsip != null) {
+            setTabStyle(btnTabAktif, activeView);
+            setTabStyle(btnTabArsip, !activeView);
+        }
+    }
+
+    private void setTabStyle(Button button, boolean active) {
+        button.getStyleClass().removeAll("menu-segment", "menu-segment-active");
+        button.getStyleClass().add(active ? "menu-segment-active" : "menu-segment");
     }
 
     private void showTambahDialog() {
@@ -236,13 +301,13 @@ public class MenuController implements Initializable {
 
         if (existing == null) {
             menuDAO.insert(new Menu(0, nama, harga, kategori));
-            AlertUtil.showInfo("Sukses", "Menu berhasil ditambahkan!");
+            ToastUtil.showSuccess(txtNama, "Menu berhasil ditambahkan.");
         } else {
             existing.setNamaMenu(nama);
             existing.setHarga(harga);
             existing.setKategori(kategori);
             menuDAO.update(existing);
-            AlertUtil.showInfo("Sukses", "Menu berhasil diupdate!");
+            ToastUtil.showSuccess(txtNama, "Menu berhasil diupdate.");
         }
         return true;
     }
@@ -252,6 +317,9 @@ public class MenuController implements Initializable {
     private Stage createDialog(String title) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
+        if (tableMenu != null && tableMenu.getScene() != null) {
+            dialog.initOwner(tableMenu.getScene().getWindow());
+        }
         dialog.setTitle(title);
         dialog.setResizable(false);
         return dialog;

@@ -44,15 +44,17 @@ public class TransaksiDAO {
     public void insertDetail(Connection conn, TransaksiDetail detail) throws SQLException {
         String sql = """
             INSERT INTO transaction_detail
-            (id_transaksi, id_menu, qty, subtotal, metode_pembayaran)
-            VALUES (?, ?, ?, ?, ?)
+            (id_transaksi, id_menu, qty, subtotal, nama_menu_snapshot, harga_satuan_snapshot, metode_pembayaran)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, detail.getIdTransaksi());
             ps.setInt(2, detail.getIdMenu());
             ps.setInt(3, detail.getQty());
             ps.setInt(4, (int) Math.round(detail.getSubtotal()));
-            ps.setString(5, detail.getMetodePembayaran());
+            ps.setString(5, detail.getNamaMenu());
+            ps.setInt(6, (int) Math.round(detail.getHarga()));
+            ps.setString(7, detail.getMetodePembayaran());
             ps.executeUpdate();
         }
     }
@@ -84,8 +86,11 @@ public class TransaksiDAO {
     public List<TransaksiDetail> findDetailByTransaksiId(int idTransaksi) {
         List<TransaksiDetail> list = new ArrayList<>();
         String sql = """
-            SELECT td.*, m.nama_menu, m.harga FROM transaction_detail td
-            JOIN menus m ON td.id_menu = m.id_menu
+            SELECT td.*,
+                   COALESCE(td.nama_menu_snapshot, m.nama_menu) AS nama_menu,
+                   COALESCE(td.harga_satuan_snapshot, m.harga) AS harga
+            FROM transaction_detail td
+            LEFT JOIN menus m ON td.id_menu = m.id_menu
             WHERE td.id_transaksi = ?
             """;
         Connection conn = koneksi.getConnection();
