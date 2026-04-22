@@ -22,10 +22,24 @@
     <VBox spacing="24" styleClass="report-page">
         <padding><Insets top="32" right="32" bottom="32" left="32"/></padding>
 
-        <VBox spacing="4">
-            <Label text="Laporan" styleClass="page-header-title"/>
-            <Label text="Ringkasan dan analisis bisnis" styleClass="page-header-subtitle"/>
-        </VBox>
+        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="page-shell">
+            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                <Label text="Laporan" styleClass="page-header-title"/>
+                <Label text="Ringkasan dan analisis bisnis" styleClass="page-header-subtitle"/>
+            </VBox>
+
+            <Button text="Export Excel"
+                    onAction="#handleExportExcel"
+                    styleClass="outline-button"/>
+
+            <Button text="Export PDF"
+                    onAction="#handleExportPdf"
+                    styleClass="outline-button"/>
+
+            <Button text="Backup Data"
+                    onAction="#handleBackupData"
+                    styleClass="action-button"/>
+        </HBox>
 
         <FlowPane hgap="24" vgap="16" styleClass="report-filter-card">
             <VBox spacing="10" prefWidth="280">

@@ -46,6 +46,10 @@ public class DebtDAO {
     }
 
     public void insert(Debt debt) {
+        if (debt == null || debt.getNominal() <= 0) {
+            throw new IllegalArgumentException("Nominal hutang/piutang harus positif.");
+        }
+
         String sql = """
             INSERT INTO debts (nama, tipe, nominal, tanggal, status, keterangan)
             VALUES (?, ?, ?, ?, ?, ?)

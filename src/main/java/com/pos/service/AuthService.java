@@ -10,7 +10,7 @@ public class AuthService {
 
     public void initDefaultUsers() {
         userDAO.insertIfNotExists("admin", "123");
-        userDAO.insertIfNotExists("owner", "321");
+        userDAO.insertIfNotExists("owner", "123");
     }
 
     public User login(String username, String password) {

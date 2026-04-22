@@ -507,6 +507,10 @@ public class DebtController implements Initializable {
     }
 
     private double parseNominal(String value) {
+        if (containsNegativeSign(value)) {
+            throw new NumberFormatException();
+        }
+
         String cleaned = normalizeLeadingZeros(extractDigits(value));
         if (cleaned.isBlank()) {
             throw new NumberFormatException();
@@ -518,6 +522,14 @@ public class DebtController implements Initializable {
         final boolean[] updating = {false};
         field.textProperty().addListener((obs, oldValue, newValue) -> {
             if (updating[0]) {
+                return;
+            }
+
+            if (containsNegativeSign(newValue)) {
+                updating[0] = true;
+                field.setText(oldValue == null ? "" : oldValue);
+                field.positionCaret(field.getText().length());
+                updating[0] = false;
                 return;
             }
 
@@ -540,6 +552,10 @@ public class DebtController implements Initializable {
                 updating[0] = false;
             }
         });
+    }
+
+    private boolean containsNegativeSign(String value) {
+        return value != null && value.matches(".*[-\\u2212\\u2013\\u2014].*");
     }
 
     private String extractDigits(String value) {
