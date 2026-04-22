@@ -553,24 +553,6 @@ public class LaporanController implements Initializable {
         }
     }
 
-    private String buildExportCsv(Connection conn) throws SQLException {
-        return switch (activeTab) {
-            case "stok" -> buildStockCsv(conn);
-            case "hutang" -> buildDebtCsv(conn);
-            default -> buildSalesCsv(conn);
-        };
-    }
-
-    private ReportData buildReportData(Connection conn) throws SQLException {
-        String title = switch (activeTab) {
-            case "stok" -> "Laporan Stok";
-            case "hutang" -> "Laporan Hutang Piutang";
-            default -> "Laporan Penjualan";
-        };
-        String period = dpMulai.getValue().toString() + " - " + dpAkhir.getValue().toString();
-        return new ReportData(title, period, parseCsv(buildExportCsv(conn)));
-    }
-
     private ReportData buildFullReportData(Connection conn) throws SQLException {
         String period = dpMulai.getValue().toString() + " - " + dpAkhir.getValue().toString();
         return new ReportData("Laporan Lengkap", period, parseCsv(buildFullExportCsv(conn)));
