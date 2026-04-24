@@ -3,6 +3,7 @@ package com.pos.controller;
 import com.pos.dao.DebtDAO;
 import com.pos.model.Debt;
 import com.pos.util.AlertUtil;
+import com.pos.util.CurrencyFormatUtil;
 import com.pos.util.ToastUtil;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -573,17 +574,11 @@ public class DebtController implements Initializable {
         if (digits == null || digits.isBlank()) {
             return "";
         }
-        NumberFormat formatter = NumberFormat.getNumberInstance(localeId);
-        formatter.setMaximumFractionDigits(0);
-        formatter.setMinimumFractionDigits(0);
-        return formatter.format(Long.parseLong(digits));
+        return CurrencyFormatUtil.formatNumber(Long.parseLong(digits));
     }
 
     private String formatCurrency(double amount) {
-        NumberFormat formatter = NumberFormat.getNumberInstance(localeId);
-        formatter.setMaximumFractionDigits(0);
-        formatter.setMinimumFractionDigits(0);
-        return "Rp " + formatter.format(amount);
+        return CurrencyFormatUtil.formatRupiah(amount);
     }
 
     private String formatOutstandingCount(int count) {

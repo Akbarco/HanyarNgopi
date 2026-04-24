@@ -1,6 +1,7 @@
 package com.pos.controller;
 
 import com.pos.config.koneksi;
+import com.pos.util.CurrencyFormatUtil;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -279,7 +280,7 @@ public class DashboardHomeController implements Initializable {
     }
 
     private String formatCurrency(double amount) {
-        return "Rp " + String.format(localeId, "%,.0f", amount);
+        return CurrencyFormatUtil.formatRupiah(amount);
     }
 
     private String formatMetode(String metode) {

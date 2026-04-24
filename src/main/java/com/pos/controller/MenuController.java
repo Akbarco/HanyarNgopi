@@ -3,6 +3,7 @@ package com.pos.controller;
 import com.pos.dao.MenuDAO;
 import com.pos.model.Menu;
 import com.pos.util.AlertUtil;
+import com.pos.util.CurrencyFormatUtil;
 import com.pos.util.ToastUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -445,10 +446,7 @@ public class MenuController implements Initializable {
         if (digits == null || digits.isBlank()) {
             return "";
         }
-        NumberFormat formatter = NumberFormat.getNumberInstance(localeId);
-        formatter.setMaximumFractionDigits(0);
-        formatter.setMinimumFractionDigits(0);
-        return formatter.format(Long.parseLong(digits));
+        return CurrencyFormatUtil.formatNumber(Long.parseLong(digits));
     }
 
     private String formatPlainCurrency(double value) {

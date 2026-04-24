@@ -5,6 +5,7 @@ import com.pos.service.AuthService;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
@@ -20,7 +21,10 @@ public class MainApp extends Application {
                 getClass().getResource("/com/pos/view/login.fxml")
         );
         Scene scene = new Scene(loader.load(), 960, 720);
-        primaryStage.setTitle("HanyarNgopi");
+        primaryStage.setTitle("Manajemen HanyarNgopi");
+        primaryStage.getIcons().add(new Image(
+                getClass().getResourceAsStream("/com/pos/view/image/logo.jpeg")
+        ));
         primaryStage.setScene(scene);
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(650);

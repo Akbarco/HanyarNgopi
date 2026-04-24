@@ -2,6 +2,7 @@ package com.pos.controller;
 
 import com.pos.config.koneksi;
 import com.pos.util.AlertUtil;
+import com.pos.util.CurrencyFormatUtil;
 import com.pos.util.ToastUtil;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -1105,10 +1106,7 @@ public class LaporanController implements Initializable {
         try {
             String digits = value.replaceAll("[^0-9-]", "");
             long amount = Long.parseLong(digits);
-            NumberFormat formatter = NumberFormat.getNumberInstance(localeId);
-            formatter.setMaximumFractionDigits(0);
-            formatter.setMinimumFractionDigits(0);
-            return "Rp " + formatter.format(amount);
+            return CurrencyFormatUtil.formatRupiah(amount);
         } catch (NumberFormatException e) {
             return value;
         }
@@ -1730,9 +1728,7 @@ public class LaporanController implements Initializable {
     }
 
     private String formatCurrency(double amount) {
-        NumberFormat formatter = NumberFormat.getNumberInstance(localeId);
-        formatter.setMaximumFractionDigits(0);
-        return "Rp " + formatter.format(amount);
+        return CurrencyFormatUtil.formatRupiah(amount);
     }
 
     private TransactionSummary loadTransactionSummary(Connection conn, int idTransaksi) throws SQLException {

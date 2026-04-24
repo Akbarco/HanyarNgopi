@@ -8,6 +8,7 @@ import com.pos.model.TransaksiDetail;
 import com.pos.service.AuthService;
 import com.pos.service.KasirService;
 import com.pos.util.AlertUtil;
+import com.pos.util.CurrencyFormatUtil;
 import com.pos.util.ToastUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -569,10 +570,7 @@ public class KasirController implements Initializable {
     }
 
     private String formatCurrency(double amount) {
-        NumberFormat formatter = NumberFormat.getNumberInstance(localeId);
-        formatter.setMaximumFractionDigits(0);
-        formatter.setMinimumFractionDigits(0);
-        return "Rp " + formatter.format(amount);
+        return CurrencyFormatUtil.formatRupiah(amount);
     }
 
     private String formatMenuOption(Menu menu) {
