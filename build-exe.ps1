@@ -11,11 +11,21 @@ $localWixPath = "tools\wix"
 $packageInput = "target\package-input"
 $distDir = "dist"
 $installerDir = "dist-installer"
-$mainJar = "MyApp-1.0-SNAPSHOT.jar"
+$mainJar = "hanyarngopi-1.0.0.jar"
 $appName = "HanyarNgopi"
 $displayName = "Manajemen HanyarNgopi"
 $appVersion = "1.0.0"
-$appDescription = "Manajemen HanyarNgopi"
+$appDescription = "Aplikasi desktop Point of Sale dan manajemen operasional HanyarNgopi"
+
+function Assert-LastExitCode {
+    param(
+        [string]$StepName
+    )
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "$StepName gagal dengan exit code $LASTEXITCODE"
+    }
+}
 
 if (!(Test-Path $jdkPath)) {
     throw "JDK 22 tidak ditemukan di $jdkPath"
@@ -37,7 +47,8 @@ if (Test-Path (Join-Path $localWixPath "candle.exe")) {
 }
 
 Write-Host "==> Build Maven package dengan JDK 22"
-& .\mvnw.cmd "-q" "-Dmaven.test.skip=true" "package"
+& .\mvnw.cmd "-q" "-Dmaven.test.skip=true" "clean" "package"
+Assert-LastExitCode "Maven package"
 
 Write-Host "==> Salin dependency runtime"
 if (Test-Path $packageInput) {
@@ -45,12 +56,10 @@ if (Test-Path $packageInput) {
 }
 New-Item -ItemType Directory -Path $packageInput | Out-Null
 
-& .\mvnw.cmd "-q" "dependency:copy-dependencies" "-DincludeScope=runtime" "-DoutputDirectory=$packageInput\lib"
+& .\mvnw.cmd "-q" "dependency:copy-dependencies" "-DincludeScope=runtime" "-DoutputDirectory=$packageInput"
+Assert-LastExitCode "Copy dependency runtime"
 
 Copy-Item -LiteralPath "target\$mainJar" -Destination $packageInput -Force
-Get-ChildItem -Path "$packageInput\lib\*.jar" | ForEach-Object {
-    Copy-Item -LiteralPath $_.FullName -Destination $packageInput -Force
-}
 
 Write-Host "==> Generate Windows app image"
 if (Test-Path $distDir) {
@@ -70,6 +79,7 @@ if (Test-Path $distDir) {
     --vendor Akbarco `
     --app-version $appVersion `
     --description $appDescription
+Assert-LastExitCode "Generate Windows app image"
 
 $appExe = Join-Path $distDir "$appName\$appName.exe"
 if (Test-Path $appExe) {
@@ -101,6 +111,7 @@ if ($hasWix) {
         --win-shortcut `
         --win-menu `
         --win-dir-chooser
+    Assert-LastExitCode "Generate installer EXE"
 
     $defaultInstaller = Join-Path $installerDir "$appName-$appVersion.exe"
     $renamedInstaller = Join-Path $installerDir "$displayName-$appVersion.exe"
