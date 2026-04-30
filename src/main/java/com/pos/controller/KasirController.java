@@ -23,6 +23,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -35,6 +36,7 @@ import java.net.URL;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -44,15 +46,43 @@ public class KasirController implements Initializable {
 
     @FXML private VBox containerRiwayat;
     @FXML private ScrollPane scrollRiwayat;
+    @FXML private Label lblTotalPembayaran;
+    @FXML private Label lblTotalTransaksi;
+    @FXML private Label lblRataTransaksi;
+    @FXML private Label lblMetodeTerbanyak;
+    @FXML private Label lblMetodeCaption;
+    @FXML private TextField txtSearchTransaksi;
+    @FXML private ComboBox<String> cmbFilterMetode;
+    @FXML private ComboBox<String> cmbSortTotal;
 
     private final KasirService kasirService = new KasirService();
     private final TransaksiDAO transaksiDAO = new TransaksiDAO();
     private final MenuDAO menuDAO = new MenuDAO();
     private final Locale localeId = new Locale("id", "ID");
+    private List<Transaksi> transaksiList = new ArrayList<>();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        setupFilters();
         loadRiwayat();
+    }
+
+    private void setupFilters() {
+        if (cmbFilterMetode != null) {
+            cmbFilterMetode.setItems(FXCollections.observableArrayList("Semua metode", "Tunai", "QRIS"));
+            cmbFilterMetode.setValue("Semua metode");
+            cmbFilterMetode.valueProperty().addListener((obs, oldValue, newValue) -> renderFilteredRiwayat());
+        }
+        if (txtSearchTransaksi != null) {
+            txtSearchTransaksi.textProperty().addListener((obs, oldValue, newValue) -> renderFilteredRiwayat());
+        }
+        if (cmbSortTotal != null) {
+            cmbSortTotal.setItems(FXCollections.observableArrayList(
+                    "Terbaru", "Transaksi tertinggi", "Transaksi terendah"
+            ));
+            cmbSortTotal.setValue("Terbaru");
+            cmbSortTotal.valueProperty().addListener((obs, oldValue, newValue) -> renderFilteredRiwayat());
+        }
     }
 
     private void loadRiwayat() {
@@ -60,11 +90,24 @@ public class KasirController implements Initializable {
             return;
         }
 
+        transaksiList = transaksiDAO.findAll();
+        renderFilteredRiwayat();
+    }
+
+    private void renderFilteredRiwayat() {
+        if (containerRiwayat == null) {
+            return;
+        }
+
         containerRiwayat.getChildren().clear();
-        List<Transaksi> list = transaksiDAO.findAll();
+        List<Transaksi> list = transaksiList.stream()
+                .filter(this::matchesFilters)
+                .sorted(transactionComparator())
+                .toList();
+        updateSummaryCards(list);
 
         if (list.isEmpty()) {
-            Label empty = new Label("Belum ada transaksi");
+            Label empty = new Label("Tidak ada transaksi yang sesuai filter");
             empty.setStyle("-fx-text-fill: #9CA3AF; -fx-font-size: 13;");
             containerRiwayat.getChildren().add(empty);
             return;
@@ -77,17 +120,93 @@ public class KasirController implements Initializable {
         }
     }
 
+    private boolean matchesFilters(Transaksi transaksi) {
+        List<TransaksiDetail> details = transaksiDAO.findDetailByTransaksiId(transaksi.getIdTransaksi());
+        String keyword = txtSearchTransaksi == null ? "" : txtSearchTransaksi.getText();
+        String query = keyword == null ? "" : keyword.trim().toLowerCase(localeId);
+        String metode = details.isEmpty() ? "-" : formatMetodeLabel(details.get(0).getMetodePembayaran());
+        String selectedMethod = cmbFilterMetode == null ? "Semua metode" : cmbFilterMetode.getValue();
+
+        boolean matchesSearch = query.isBlank()
+                || contains(formatCurrency(transaksi.getTotal()), query)
+                || contains(transaksi.getTanggal().format(DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm", localeId)), query)
+                || contains(metode, query)
+                || details.stream().anyMatch(detail ->
+                contains(detail.getNamaMenu(), query)
+                        || contains(String.valueOf(detail.getQty()), query)
+                        || contains(formatCurrency(detail.getSubtotal()), query));
+        boolean matchesMethod = selectedMethod == null
+                || "Semua metode".equals(selectedMethod)
+                || selectedMethod.equalsIgnoreCase(metode);
+
+        return matchesSearch && matchesMethod;
+    }
+
+    private Comparator<Transaksi> transactionComparator() {
+        String sort = cmbSortTotal == null ? "Terbaru" : cmbSortTotal.getValue();
+        if ("Transaksi tertinggi".equals(sort)) {
+            return Comparator.comparingDouble(Transaksi::getTotal).reversed();
+        }
+        if ("Transaksi terendah".equals(sort)) {
+            return Comparator.comparingDouble(Transaksi::getTotal);
+        }
+        return Comparator.comparing(Transaksi::getTanggal).reversed();
+    }
+
+    @FXML
+    public void handleResetFilter() {
+        if (txtSearchTransaksi != null) txtSearchTransaksi.clear();
+        if (cmbFilterMetode != null) cmbFilterMetode.setValue("Semua metode");
+        if (cmbSortTotal != null) cmbSortTotal.setValue("Terbaru");
+        renderFilteredRiwayat();
+    }
+
+    private void updateSummaryCards(List<Transaksi> transaksiList) {
+        double total = transaksiList.stream().mapToDouble(Transaksi::getTotal).sum();
+        int count = transaksiList.size();
+        double average = count == 0 ? 0 : total / count;
+        int cashCount = 0;
+        int qrisCount = 0;
+
+        for (Transaksi transaksi : transaksiList) {
+            List<TransaksiDetail> details = transaksiDAO.findDetailByTransaksiId(transaksi.getIdTransaksi());
+            if (!details.isEmpty()) {
+                String metode = details.get(0).getMetodePembayaran();
+                if ("qris".equalsIgnoreCase(metode)) {
+                    qrisCount++;
+                } else if ("cash".equalsIgnoreCase(metode)) {
+                    cashCount++;
+                }
+            }
+        }
+
+        setLabel(lblTotalPembayaran, formatCurrency(total));
+        setLabel(lblTotalTransaksi, String.valueOf(count));
+        setLabel(lblRataTransaksi, formatCurrency(average));
+
+        if (count == 0 || (cashCount == 0 && qrisCount == 0)) {
+            setLabel(lblMetodeTerbanyak, "-");
+            setLabel(lblMetodeCaption, "Belum ada transaksi");
+        } else if (qrisCount > cashCount) {
+            setLabel(lblMetodeTerbanyak, "QRIS");
+            setLabel(lblMetodeCaption, qrisCount + " dari " + count + " transaksi");
+        } else {
+            setLabel(lblMetodeTerbanyak, "Tunai");
+            setLabel(lblMetodeCaption, cashCount + " dari " + count + " transaksi");
+        }
+    }
+
+    private void setLabel(Label label, String value) {
+        if (label != null) {
+            label.setText(value);
+        }
+    }
+
     private VBox buildTransaksiCard(Transaksi transaksi, List<TransaksiDetail> details) {
         VBox card = new VBox(12);
         card.setMaxWidth(Double.MAX_VALUE);
         card.setPadding(new Insets(20));
-        card.setStyle(
-                "-fx-background-color: #F8FAFF;" +
-                        "-fx-background-radius: 14;" +
-                        "-fx-border-color: #D7E3FF;" +
-                        "-fx-border-radius: 14;" +
-                        "-fx-border-width: 1;"
-        );
+        card.getStyleClass().add("transaction-history-card");
 
         String metodeRaw = details.isEmpty() ? "-" : details.get(0).getMetodePembayaran();
         String metode = formatMetodeLabel(metodeRaw);
@@ -101,17 +220,11 @@ public class KasirController implements Initializable {
 
         VBox leftInfo = new VBox(6);
         Label lblTanggal = new Label(tanggal);
-        lblTanggal.setStyle("-fx-font-size: 13; -fx-text-fill: #475569;");
+        lblTanggal.getStyleClass().add("transaction-date");
 
         Label badgeMetode = new Label(metode);
-        badgeMetode.setStyle(
-                "-fx-background-color: " + ("QRIS".equals(metode) ? "#FEF3C7" : "#EEF2FF") + ";" +
-                        "-fx-text-fill: " + ("QRIS".equals(metode) ? "#B45309" : "#4F46E5") + ";" +
-                        "-fx-background-radius: 999;" +
-                        "-fx-padding: 4 14 4 14;" +
-                        "-fx-font-size: 11;" +
-                        "-fx-font-weight: bold;"
-        );
+        badgeMetode.getStyleClass().add("payment-badge");
+        badgeMetode.getStyleClass().add("QRIS".equals(metode) ? "payment-badge-qris" : "payment-badge-cash");
         leftInfo.getChildren().addAll(lblTanggal, badgeMetode);
 
         Region spacer = new Region();
@@ -120,9 +233,9 @@ public class KasirController implements Initializable {
         VBox rightInfo = new VBox(2);
         rightInfo.setAlignment(Pos.CENTER_RIGHT);
         Label lblTotalLabel = new Label("Total Pembayaran");
-        lblTotalLabel.setStyle("-fx-font-size: 11; -fx-text-fill: #6B7280;");
+        lblTotalLabel.getStyleClass().add("transaction-total-label");
         Label lblTotal = new Label(formatCurrency(transaksi.getTotal()));
-        lblTotal.setStyle("-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: #16A34A;");
+        lblTotal.getStyleClass().add("transaction-total-value");
         rightInfo.getChildren().addAll(lblTotalLabel, lblTotal);
 
         headerRow.getChildren().addAll(leftInfo, spacer, rightInfo);
@@ -134,7 +247,7 @@ public class KasirController implements Initializable {
         divider.setStyle("-fx-background-color: #E5E7EB;");
 
         Label lblItems = new Label("Item Pesanan:");
-        lblItems.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #374151;");
+        lblItems.getStyleClass().add("transaction-section-label");
 
         FlowPane itemsGrid = new FlowPane();
         itemsGrid.setHgap(12);
@@ -145,9 +258,9 @@ public class KasirController implements Initializable {
             HBox itemCard = new HBox(16);
             itemCard.setPadding(new Insets(12, 16, 12, 16));
             itemCard.setAlignment(Pos.CENTER_LEFT);
-            itemCard.setMinWidth(300);
-            itemCard.setPrefWidth(320);
-            itemCard.setMaxWidth(320);
+            itemCard.setMinWidth(360);
+            itemCard.setPrefWidth(400);
+            itemCard.setMaxWidth(420);
             itemCard.getStyleClass().add("transaction-item-card");
 
             VBox itemInfo = new VBox(2);
@@ -214,16 +327,17 @@ public class KasirController implements Initializable {
         Label lblPilihMenu = fieldLabel("Pilih Menu");
 
         ComboBox<Menu> cmbMenu = new ComboBox<>();
-        cmbMenu.setItems(FXCollections.observableArrayList(menuDAO.findByActive(true)));
+        cmbMenu.setItems(FXCollections.observableArrayList(menuDAO.findAvailableForTransaction()));
         cmbMenu.setPromptText("Pilih menu");
         cmbMenu.setMaxWidth(Double.MAX_VALUE);
         cmbMenu.getStyleClass().add("combo-input");
         cmbMenu.setCellFactory(lv -> createMenuCell());
         cmbMenu.setButtonCell(createMenuCell());
+        enableMenuKeyboardJump(cmbMenu);
         menuBox.getChildren().addAll(lblPilihMenu, cmbMenu);
 
         VBox qtyBox = new VBox(8);
-        qtyBox.setPrefWidth(120);
+        qtyBox.setPrefWidth(140);
         Label lblJumlah = fieldLabel("Jumlah");
 
         TextField txtQty = new TextField("1");
@@ -232,8 +346,8 @@ public class KasirController implements Initializable {
 
         Button btnTambah = new Button("Tambah");
         btnTambah.getStyleClass().add("primary-button");
-        btnTambah.setPrefWidth(130);
-        btnTambah.setPrefHeight(44);
+        btnTambah.setPrefWidth(150);
+        btnTambah.setPrefHeight(48);
 
         inputRow.getChildren().addAll(menuBox, qtyBox, btnTambah);
 
@@ -245,7 +359,7 @@ public class KasirController implements Initializable {
 
         ScrollPane scrollKeranjang = new ScrollPane(keranjangContainer);
         scrollKeranjang.setFitToWidth(true);
-        scrollKeranjang.setPrefHeight(156);
+        scrollKeranjang.setPrefHeight(180);
         scrollKeranjang.setStyle(
                 "-fx-background-color: transparent;" +
                         "-fx-background: transparent;" +
@@ -258,7 +372,7 @@ public class KasirController implements Initializable {
         bottomRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox metodeBox = new VBox(8);
-        metodeBox.setPrefWidth(240);
+        metodeBox.setPrefWidth(260);
         Label lblMetode = fieldLabel("Metode Pembayaran");
 
         ComboBox<String> cmbMetode = new ComboBox<>();
@@ -304,7 +418,7 @@ public class KasirController implements Initializable {
             String qtyStr = txtQty.getText().trim();
 
             if (menu == null || qtyStr.isEmpty()) {
-                AlertUtil.showError("Validasi", "Pilih menu dan isi jumlah dulu.");
+                AlertUtil.showError("Validasi", "Pilih menu yang masih tersedia dan isi jumlah dulu.");
                 return;
             }
 
@@ -386,12 +500,39 @@ public class KasirController implements Initializable {
 
         refreshRef.get().run();
 
-        Scene scene = new Scene(root, 680, 520);
+        Scene scene = new Scene(root, 760, 560);
         String menuCss = getClass().getResource("/com/pos/view/css/menu.css").toExternalForm();
         root.getStylesheets().add(menuCss);
         scene.getStylesheets().add(menuCss);
         dialog.setScene(scene);
         dialog.showAndWait();
+    }
+
+    private void enableMenuKeyboardJump(ComboBox<Menu> comboBox) {
+        ObservableList<Menu> allItems = FXCollections.observableArrayList(comboBox.getItems());
+        comboBox.setOnHidden(event -> comboBox.setItems(allItems));
+        comboBox.addEventFilter(KeyEvent.KEY_TYPED, event -> {
+            String key = event.getCharacter();
+            if (key == null || key.isBlank() || allItems.isEmpty()) {
+                return;
+            }
+
+            String query = key.trim().toLowerCase(localeId);
+            ObservableList<Menu> matches = FXCollections.observableArrayList();
+            for (Menu menu : allItems) {
+                String name = menu.getNamaMenu();
+                if (name != null && name.toLowerCase(localeId).startsWith(query)) {
+                    matches.add(menu);
+                }
+            }
+            if (matches.isEmpty()) {
+                return;
+            }
+            comboBox.setItems(matches);
+            comboBox.getSelectionModel().selectFirst();
+            comboBox.show();
+            event.consume();
+        });
     }
 
     private ListCell<Menu> createMenuCell() {
@@ -567,6 +708,56 @@ public class KasirController implements Initializable {
                 "-fx-background-radius: 10;" +
                 "-fx-pref-height: 44;" +
                 "-fx-padding: 0 22 0 22;";
+    }
+
+    private void configureCurrencyField(TextField field) {
+        final boolean[] updating = {false};
+        field.textProperty().addListener((obs, oldValue, newValue) -> {
+            if (updating[0]) {
+                return;
+            }
+
+            String digits = extractDigits(newValue);
+            if (digits.isEmpty()) {
+                if (!newValue.isEmpty()) {
+                    updating[0] = true;
+                    field.clear();
+                    updating[0] = false;
+                }
+                return;
+            }
+
+            String formatted = CurrencyFormatUtil.formatNumber(Long.parseLong(normalizeLeadingZeros(digits)));
+            if (!formatted.equals(newValue)) {
+                updating[0] = true;
+                field.setText(formatted);
+                field.positionCaret(formatted.length());
+                updating[0] = false;
+            }
+        });
+    }
+
+    private double parseOptionalCurrency(String value, double fallback) {
+        String digits = extractDigits(value);
+        if (digits.isBlank()) {
+            return fallback;
+        }
+        return Double.parseDouble(normalizeLeadingZeros(digits));
+    }
+
+    private String extractDigits(String value) {
+        return value == null ? "" : value.replaceAll("[^0-9]", "");
+    }
+
+    private String normalizeLeadingZeros(String digits) {
+        if (digits == null || digits.isBlank()) {
+            return "";
+        }
+        return digits.replaceFirst("^0+(?!$)", "");
+    }
+
+    private boolean contains(String source, String query) {
+        return source != null && source.toLowerCase(localeId).contains(query);
     }
 
     private String formatCurrency(double amount) {

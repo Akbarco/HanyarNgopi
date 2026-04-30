@@ -86,7 +86,7 @@
                     </graphic>
                     <VBox.margin><Insets bottom="2"/></VBox.margin>
                 </Button>
-                <Button fx:id="btnHutang" text="Hutang"
+                <Button fx:id="btnHutang" text="Hutang Piutang"
                         onAction="#openHutang"
                         maxWidth="Infinity" styleClass="nav-btn">
                     <graphic>

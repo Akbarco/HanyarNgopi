@@ -4,9 +4,11 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.shape.Circle?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
 <StackPane xmlns="http://javafx.com/javafx"
@@ -16,39 +18,68 @@
            styleClass="root-pane"
            stylesheets="@css/login.css">
 
-    <VBox fx:id="loginCard" styleClass="login-card" alignment="CENTER" spacing="20">
-        <padding><Insets top="40" right="44" bottom="36" left="44"/></padding>
+    <HBox fx:id="loginCard" styleClass="login-shell" alignment="CENTER" fillHeight="true">
+        <StackPane styleClass="brand-panel">
+            <VBox styleClass="brand-content" alignment="CENTER" spacing="18">
+                <StackPane styleClass="brand-logo-shell">
+                    <ImageView fitWidth="132" fitHeight="132" preserveRatio="true">
+                        <clip>
+                            <Circle centerX="66" centerY="66" radius="66"/>
+                        </clip>
+                        <image>
+                            <Image url="@image/logo.jpeg"/>
+                        </image>
+                    </ImageView>
+                </StackPane>
 
-        <ImageView fitWidth="92" fitHeight="92" preserveRatio="true">
-            <image>
-                <Image url="@image/logo.jpeg"/>
-            </image>
-        </ImageView>
+                <VBox alignment="CENTER" spacing="6">
+                    <Label text="HanyarNgopi" styleClass="brand-title"/>
+                    <Label text="Sistem Manajemen" styleClass="brand-subtitle"/>
+                </VBox>
 
-        <VBox alignment="CENTER" spacing="8">
-            <Label text="HanyarNgopi" styleClass="title"/>
-            <Label text="Masuk untuk mengelola menu, stok, dan transaksi"
-                   styleClass="subtitle" wrapText="true"/>
+                <Label text="Kelola menu, stok, transaksi, hingga laporan dengan mudah dan efisien."
+                       styleClass="brand-copy"
+                       wrapText="true"/>
+            </VBox>
+        </StackPane>
+
+        <VBox styleClass="form-panel" alignment="CENTER">
+            <VBox styleClass="form-inner" spacing="22" fillWidth="true">
+                <HBox alignment="CENTER_LEFT" spacing="16">
+                    <StackPane styleClass="welcome-logo-shell">
+                        <ImageView fitWidth="34" fitHeight="34" preserveRatio="true">
+                            <clip>
+                                <Circle centerX="17" centerY="17" radius="17"/>
+                            </clip>
+                            <image>
+                                <Image url="@image/logo.jpeg"/>
+                            </image>
+                        </ImageView>
+                    </StackPane>
+                    <VBox spacing="4">
+                        <Label text="Selamat Datang Kembali" styleClass="welcome-title"/>
+                        <Label text="Silakan masuk untuk melanjutkan" styleClass="welcome-subtitle"/>
+                    </VBox>
+                </HBox>
+
+                <VBox spacing="10" fillWidth="true">
+                    <Label text="Username" styleClass="field-label"/>
+                    <TextField fx:id="txtUsername"
+                               promptText="Masukkan username"
+                               styleClass="input-field"/>
+
+                    <Label text="Password" styleClass="field-label">
+                        <VBox.margin><Insets top="10"/></VBox.margin>
+                    </Label>
+                    <PasswordField fx:id="txtPassword"
+                                   promptText="Masukkan password"
+                                   onAction="#handleLogin"
+                                   styleClass="input-field"/>
+                </VBox>
+
+                <Button text="Masuk  ->" onAction="#handleLogin"
+                        styleClass="btn-login" maxWidth="Infinity"/>
+            </VBox>
         </VBox>
-
-        <VBox spacing="10" fillWidth="true">
-            <Label text="Username" styleClass="field-label"/>
-            <TextField fx:id="txtUsername"
-                       promptText="Masukkan username"
-                       styleClass="input-field"/>
-
-            <Label text="Password" styleClass="field-label">
-                <VBox.margin><Insets top="4"/></VBox.margin>
-            </Label>
-            <PasswordField fx:id="txtPassword"
-                           promptText="Masukkan password"
-                           onAction="#handleLogin"
-                           styleClass="input-field"/>
-
-            <Button text="Masuk" onAction="#handleLogin"
-                    styleClass="btn-login" maxWidth="Infinity">
-                <VBox.margin><Insets top="10"/></VBox.margin>
-            </Button>
-        </VBox>
-    </VBox>
+    </HBox>
 </StackPane>

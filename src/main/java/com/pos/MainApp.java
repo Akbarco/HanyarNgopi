@@ -3,6 +3,7 @@ package com.pos;
 import com.pos.config.initDatabase;
 import com.pos.service.AuthService;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -29,8 +30,9 @@ public class MainApp extends Application {
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(650);
         primaryStage.setResizable(true);
+        primaryStage.setMaximized(true);
         primaryStage.show();
-        primaryStage.centerOnScreen();
+        Platform.runLater(() -> primaryStage.setMaximized(true));
     }
 
     public static void main(String[] args) {

@@ -1,5 +1,5 @@
 .page-root {
-    -fx-background-color: #F1F5F9;
+    -fx-background-color: #F5F7FB;
 }
 
 .page-shell {
@@ -7,7 +7,7 @@
 }
 
 .page-header-title {
-    -fx-font-size: 28;
+    -fx-font-size: 29;
     -fx-font-weight: bold;
     -fx-text-fill: #111827;
 }
@@ -22,12 +22,13 @@
     -fx-text-fill: white;
     -fx-font-size: 13;
     -fx-font-weight: bold;
-    -fx-background-radius: 10;
+    -fx-background-radius: 12;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-cursor: hand;
-    -fx-pref-height: 44;
-    -fx-padding: 0 24 0 24;
+    -fx-pref-height: 46;
+    -fx-padding: 0 26 0 26;
+    -fx-effect: dropshadow(gaussian, rgba(79,70,229,0.24), 14, 0, 0, 5);
 }
 
 .action-button:hover {
@@ -36,14 +37,14 @@
 
 .table-action-button {
     -fx-background-color: white;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    -fx-border-color: #D1D5DB;
+    -fx-background-radius: 9;
+    -fx-border-radius: 9;
+    -fx-border-color: #E0E5EE;
     -fx-cursor: hand;
-    -fx-font-size: 12;
+    -fx-font-size: 14;
     -fx-font-weight: bold;
-    -fx-pref-height: 34;
-    -fx-padding: 0 12 0 12;
+    -fx-pref-height: 44;
+    -fx-padding: 0 18 0 18;
 }
 
 .table-action-button-edit {
@@ -514,12 +515,15 @@
 
 .surface-card {
     -fx-background-color: white;
-    -fx-background-radius: 18;
-    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.08), 18, 0, 0, 4);
+    -fx-background-radius: 20;
+    -fx-border-color: #E8ECF3;
+    -fx-border-radius: 20;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.08), 20, 0, 0, 7);
 }
 
 .surface-card-header {
-    -fx-font-size: 16;
+    -fx-font-size: 17;
     -fx-font-weight: bold;
     -fx-text-fill: #111827;
 }
@@ -533,8 +537,136 @@
     -fx-padding: 0 0 4 0;
 }
 
+.search-input {
+    -fx-background-color: #F8FAFD;
+    -fx-background-radius: 14;
+    -fx-background-insets: 0;
+    -fx-border-color: #E0E5EE;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-pref-height: 44;
+    -fx-font-size: 14;
+    -fx-text-fill: #111827;
+    -fx-prompt-text-fill: #94A3B8;
+    -fx-padding: 0 16 0 16;
+}
+
+.search-input:focused {
+    -fx-background-color: white;
+    -fx-border-color: #8B7CFF;
+    -fx-border-width: 1.4;
+}
+
+.filter-bar {
+    -fx-background-color: #F8FAFD;
+    -fx-background-radius: 16;
+    -fx-border-color: #E8ECF3;
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-padding: 14;
+}
+
+.filter-input,
+.filter-combo,
+.combo-box-base.filter-combo {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-background-insets: 0;
+    -fx-border-color: #E0E5EE;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-pref-height: 48;
+    -fx-font-size: 14;
+}
+
+.filter-input {
+    -fx-text-fill: #111827;
+    -fx-prompt-text-fill: #94A3B8;
+    -fx-padding: 0 16 0 16;
+}
+
+.filter-input:focused,
+.filter-combo:focused {
+    -fx-border-color: #8B7CFF;
+    -fx-border-width: 1.4;
+}
+
+.filter-combo .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #111827;
+    -fx-padding: 0 14 0 14;
+}
+
+.filter-combo .arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+
+.filter-combo .arrow {
+    -fx-background-color: #64748B;
+}
+
+.filter-reset-button {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-color: #E0E5EE;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-text-fill: #475569;
+    -fx-font-size: 14;
+    -fx-font-weight: bold;
+    -fx-pref-height: 48;
+    -fx-padding: 0 18 0 18;
+    -fx-cursor: hand;
+}
+
+.filter-reset-button:hover {
+    -fx-background-color: #EEF2FF;
+    -fx-text-fill: #4F46E5;
+    -fx-border-color: #C7D2FE;
+}
+
+.kasir-search-input {
+    -fx-pref-height: 52;
+    -fx-min-height: 52;
+    -fx-max-height: 52;
+    -fx-font-size: 15;
+    -fx-padding: 0 18 0 18;
+}
+
+.kasir-filter-bar {
+    -fx-padding: 18;
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+}
+
+.kasir-filter-combo,
+.combo-box-base.kasir-filter-combo {
+    -fx-pref-height: 54;
+    -fx-min-height: 54;
+    -fx-max-height: 54;
+    -fx-font-size: 15;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+}
+
+.kasir-filter-combo .list-cell {
+    -fx-font-size: 15;
+    -fx-padding: 0 16 0 16;
+}
+
+.kasir-filter-reset-button {
+    -fx-pref-height: 54;
+    -fx-min-height: 54;
+    -fx-max-height: 54;
+    -fx-font-size: 15;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-padding: 0 22 0 22;
+}
+
 .menu-segmented-control {
-    -fx-background-color: #F1F5F9;
+    -fx-background-color: #F4F6FA;
     -fx-background-radius: 999;
     -fx-border-color: #E2E8F0;
     -fx-border-radius: 999;
@@ -581,7 +713,7 @@
 }
 
 .table-view .column-header-background {
-    -fx-background-color: #F9FAFB;
+    -fx-background-color: #F8FAFD;
     -fx-border-color: transparent transparent #E5E7EB transparent;
     -fx-border-width: 0 0 1 0;
 }
@@ -589,13 +721,13 @@
 .table-view .column-header {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
-    -fx-size: 48;
+    -fx-size: 58;
 }
 
 .table-view .column-header .label {
     -fx-font-weight: bold;
     -fx-text-fill: #6B7280;
-    -fx-font-size: 12;
+    -fx-font-size: 16;
     -fx-alignment: CENTER-LEFT;
     -fx-padding: 0 0 0 8;
 }
@@ -607,8 +739,8 @@
 
 .table-view .table-cell {
     -fx-border-color: transparent;
-    -fx-padding: 0 8 0 8;
-    -fx-font-size: 13;
+    -fx-padding: 0 12 0 12;
+    -fx-font-size: 16;
     -fx-text-fill: #1A1A2E;
     -fx-alignment: CENTER-LEFT;
 }
@@ -622,7 +754,7 @@
     -fx-background-color: white;
     -fx-border-color: transparent transparent #F3F4F6 transparent;
     -fx-border-width: 0 0 1 0;
-    -fx-cell-size: 52px;
+    -fx-cell-size: 72px;
 }
 
 .table-row-cell:empty {
@@ -727,7 +859,8 @@
 
 .dialog-root {
     -fx-background-color: white;
-    -fx-background-radius: 18;
+    -fx-background-radius: 22;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.15), 28, 0, 0, 10);
 }
 
 .dialog-title {
@@ -778,13 +911,13 @@
 .text-field.text-input,
 .combo-box-base.combo-input,
 .date-picker.date-input {
-    -fx-background-color: #F3F4F6;
-    -fx-background-radius: 10;
+    -fx-background-color: #F8FAFD;
+    -fx-background-radius: 12;
     -fx-background-insets: 0;
-    -fx-border-color: transparent;
-    -fx-border-radius: 10;
-    -fx-border-width: 0;
-    -fx-pref-height: 44;
+    -fx-border-color: #E0E5EE;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-pref-height: 48;
     -fx-font-size: 13;
     -fx-padding: 0 14 0 14;
 }
@@ -818,6 +951,11 @@
 
 .combo-input {
     -fx-padding: 0;
+}
+
+.combo-input .list-cell {
+    -fx-font-size: 14;
+    -fx-padding: 0 14 0 14;
 }
 
 .combo-box-base.combo-input {
@@ -882,25 +1020,25 @@
 
 .transaction-item-card {
     -fx-background-color: #F8FAFC;
-    -fx-background-radius: 12;
+    -fx-background-radius: 14;
     -fx-border-color: #E2E8F0;
-    -fx-border-radius: 12;
+    -fx-border-radius: 14;
     -fx-border-width: 1;
 }
 
 .transaction-item-name {
-    -fx-font-size: 13;
+    -fx-font-size: 16;
     -fx-font-weight: bold;
     -fx-text-fill: #111827;
 }
 
 .transaction-item-meta {
-    -fx-font-size: 11;
+    -fx-font-size: 13;
     -fx-text-fill: #64748B;
 }
 
 .transaction-item-subtotal {
-    -fx-font-size: 13;
+    -fx-font-size: 15;
     -fx-font-weight: bold;
     -fx-text-fill: #111827;
     -fx-alignment: CENTER_RIGHT;
@@ -933,12 +1071,12 @@
     -fx-text-fill: white;
     -fx-font-size: 14;
     -fx-font-weight: bold;
-    -fx-background-radius: 10;
+    -fx-background-radius: 12;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-border-width: 0;
     -fx-cursor: hand;
-    -fx-pref-height: 44;
+    -fx-pref-height: 48;
     -fx-padding: 0 22 0 22;
 }
 
@@ -959,12 +1097,12 @@
     -fx-background-color: white;
     -fx-text-fill: #374151;
     -fx-border-color: #D1D5DB;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
     -fx-background-insets: 0;
     -fx-border-insets: 0;
     -fx-cursor: hand;
-    -fx-pref-height: 44;
+    -fx-pref-height: 48;
     -fx-padding: 0 18 0 18;
 }
 
@@ -1012,21 +1150,21 @@
 }
 
 .debt-summary-hutang {
-    -fx-background-color: #FFF7F7;
+    -fx-background-color: white;
     -fx-border-color: #FECACA;
-    -fx-background-radius: 18;
-    -fx-border-radius: 18;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
     -fx-border-width: 1.5;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 14, 0, 0, 3);
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.08), 18, 0, 0, 6);
 }
 
 .debt-summary-piutang {
-    -fx-background-color: #FFFBF5;
+    -fx-background-color: white;
     -fx-border-color: #FCD39D;
-    -fx-background-radius: 18;
-    -fx-border-radius: 18;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
     -fx-border-width: 1.5;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 14, 0, 0, 3);
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.08), 18, 0, 0, 6);
 }
 
 .debt-summary-title {
@@ -1104,11 +1242,238 @@
 
 .debt-section-card {
     -fx-background-color: white;
-    -fx-background-radius: 18;
+    -fx-background-radius: 20;
     -fx-border-color: #E5E7EB;
-    -fx-border-radius: 18;
+    -fx-border-radius: 20;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 16, 0, 0, 4);
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.08), 20, 0, 0, 7);
+}
+
+.summary-grid {
+    -fx-background-color: transparent;
+}
+
+.summary-card {
+    -fx-background-color: white;
+    -fx-background-radius: 20;
+    -fx-border-color: #E8ECF3;
+    -fx-border-radius: 20;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.09), 20, 0, 0, 7);
+    -fx-min-height: 122;
+}
+
+.transaction-summary-card {
+    -fx-min-height: 128;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.10), 20, 0, 0, 7);
+}
+
+.summary-card-text-only {
+    -fx-alignment: CENTER_LEFT;
+}
+
+.transaction-summary-card .summary-label {
+    -fx-font-size: 14;
+    -fx-font-weight: bold;
+    -fx-text-fill: #334155;
+}
+
+.transaction-summary-card .summary-caption {
+    -fx-font-size: 12;
+    -fx-font-weight: bold;
+    -fx-text-fill: #64748B;
+}
+
+.transaction-summary-value {
+    -fx-font-size: 22;
+    -fx-font-weight: bold;
+    -fx-text-fill: #020617;
+}
+
+.summary-icon {
+    -fx-pref-width: 54;
+    -fx-pref-height: 54;
+    -fx-background-radius: 16;
+}
+
+.summary-card-blue {
+    -fx-border-color: #93C5FD;
+}
+
+.summary-card-green {
+    -fx-border-color: #86EFAC;
+}
+
+.summary-card-orange {
+    -fx-border-color: #FDBA74;
+}
+
+.summary-card-red {
+    -fx-border-color: #FCA5A5;
+}
+
+.summary-icon-blue {
+    -fx-background-color: #EEF4FF;
+}
+
+.summary-icon-green {
+    -fx-background-color: #ECFDF5;
+}
+
+.summary-icon-orange {
+    -fx-background-color: #FFF7ED;
+}
+
+.summary-icon-red {
+    -fx-background-color: #FFF1F2;
+}
+
+.summary-svg-blue,
+.summary-svg-green,
+.summary-svg-orange,
+.summary-svg-red {
+    -fx-fill: transparent;
+    -fx-stroke-width: 2.1;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+}
+
+.summary-svg-blue {
+    -fx-stroke: #4F46E5;
+}
+
+.summary-svg-green {
+    -fx-stroke: #16A34A;
+}
+
+.summary-svg-orange {
+    -fx-stroke: #EA580C;
+}
+
+.summary-svg-red {
+    -fx-stroke: #EF4444;
+}
+
+.summary-label {
+    -fx-font-size: 13;
+    -fx-text-fill: #334155;
+    -fx-font-weight: bold;
+}
+
+.summary-value {
+    -fx-font-size: 28;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+.summary-money {
+    -fx-text-fill: #16A34A;
+}
+
+.summary-caption {
+    -fx-font-size: 12;
+    -fx-text-fill: #64748B;
+    -fx-font-weight: bold;
+}
+
+.summary-card-text-only .summary-label {
+    -fx-wrap-text: true;
+}
+
+.summary-card-text-only .summary-value,
+.summary-card-text-only .transaction-summary-value {
+    -fx-padding: 2 0 2 0;
+}
+
+.summary-card-green .summary-label,
+.summary-card-green .summary-caption {
+    -fx-text-fill: #15803D;
+}
+
+.summary-card-green .summary-value,
+.summary-card-green .transaction-summary-value {
+    -fx-text-fill: #16A34A;
+}
+
+.summary-card-blue .summary-label,
+.summary-card-blue .summary-caption {
+    -fx-text-fill: #1D4ED8;
+}
+
+.summary-card-blue .summary-value,
+.summary-card-blue .transaction-summary-value {
+    -fx-text-fill: #2563EB;
+}
+
+.summary-card-orange .summary-label,
+.summary-card-orange .summary-caption {
+    -fx-text-fill: #C2410C;
+}
+
+.summary-card-orange .summary-value,
+.summary-card-orange .transaction-summary-value {
+    -fx-text-fill: #EA580C;
+}
+
+.summary-card-red .summary-label,
+.summary-card-red .summary-caption {
+    -fx-text-fill: #E11D48;
+}
+
+.summary-card-red .summary-value,
+.summary-card-red .transaction-summary-value {
+    -fx-text-fill: #EF4444;
+}
+
+.transaction-history-card {
+    -fx-background-color: white;
+    -fx-background-radius: 18;
+    -fx-border-color: #D7E3FF;
+    -fx-border-radius: 18;
+    -fx-border-width: 1.4;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.07), 14, 0, 0, 4);
+    -fx-min-height: 248;
+}
+
+.transaction-date {
+    -fx-font-size: 17;
+    -fx-font-weight: bold;
+    -fx-text-fill: #334155;
+}
+
+.payment-badge {
+    -fx-background-radius: 999;
+    -fx-padding: 6 16 6 16;
+    -fx-font-size: 12;
+    -fx-font-weight: bold;
+}
+
+.payment-badge-cash {
+    -fx-background-color: #EEF2FF;
+    -fx-text-fill: #4F46E5;
+}
+
+.payment-badge-qris {
+    -fx-background-color: #FEF3C7;
+    -fx-text-fill: #B45309;
+}
+
+.transaction-total-label {
+    -fx-font-size: 13;
+    -fx-font-weight: bold;
+    -fx-text-fill: #64748B;
+}
+
+.transaction-total-value {
+    -fx-font-size: 25;
+    -fx-font-weight: bold;
+    -fx-text-fill: #16A34A;
+}
+
+.transaction-section-label {
+    -fx-font-size: 15;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
 }
 
 .debt-item-title {
@@ -1155,11 +1520,12 @@
 
 .date-picker.dialog-date-input {
     -fx-background-color: #F8FAFC;
-    -fx-background-radius: 6;
+    -fx-background-radius: 12;
     -fx-border-color: #E5E7EB;
-    -fx-border-radius: 6;
+    -fx-border-radius: 12;
     -fx-border-width: 1;
-    -fx-pref-height: 44;
+    -fx-pref-height: 48;
+    -fx-padding: 0;
 }
 
 .date-picker.dialog-date-input:focused {
@@ -1171,10 +1537,11 @@
 .date-picker.dialog-date-input .text-field {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
-    -fx-background-radius: 6 0 0 6;
+    -fx-background-radius: 12 0 0 12;
     -fx-border-color: transparent;
     -fx-border-width: 0;
     -fx-padding: 0 14 0 14;
+    -fx-font-size: 14;
     -fx-text-fill: #111827;
     -fx-prompt-text-fill: #94A3B8;
 }
@@ -1182,11 +1549,11 @@
 .date-picker.dialog-date-input > .arrow-button,
 .date-picker.dialog-date-input .arrow-button {
     -fx-background-color: #F8FAFC;
-    -fx-background-radius: 0 6 6 0;
+    -fx-background-radius: 0 12 12 0;
     -fx-background-insets: 0;
     -fx-border-color: #E5E7EB;
     -fx-border-width: 0 0 0 1;
-    -fx-pref-width: 42;
+    -fx-pref-width: 48;
 }
 
 .date-picker.dialog-date-input > .arrow-button:hover,

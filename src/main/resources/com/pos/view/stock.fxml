@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
@@ -19,7 +25,7 @@
     <HBox alignment="CENTER_LEFT" styleClass="page-shell">
         <VBox HBox.hgrow="ALWAYS" spacing="4">
             <Label text="Kelola Stok" styleClass="page-header-title"/>
-            <Label text="Pantau dan kelola stok bahan baku" styleClass="page-header-subtitle"/>
+            <Label text="Kelola dan pantau ketersediaan stok operasional" styleClass="page-header-subtitle"/>
         </VBox>
 
         <Button text="+ Tambah Stok"
@@ -27,12 +33,85 @@
                 styleClass="action-button"/>
     </HBox>
 
+    <FlowPane hgap="18" vgap="14" prefWrapLength="1600" styleClass="summary-grid">
+        <VBox minWidth="220" prefWidth="255" spacing="10" alignment="CENTER_LEFT">
+            <styleClass>
+                <String fx:value="summary-card"/>
+                <String fx:value="summary-card-blue"/>
+                <String fx:value="summary-card-text-only"/>
+            </styleClass>
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <Label text="Total Produk" styleClass="summary-label"/>
+            <Label fx:id="lblTotalProduk" text="0" styleClass="summary-value"/>
+            <Label text="Jenis stok" styleClass="summary-caption"/>
+        </VBox>
+
+        <VBox minWidth="220" prefWidth="255" spacing="10" alignment="CENTER_LEFT">
+            <styleClass>
+                <String fx:value="summary-card"/>
+                <String fx:value="summary-card-green"/>
+                <String fx:value="summary-card-text-only"/>
+            </styleClass>
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <Label text="Stok Aman" styleClass="summary-label"/>
+            <Label fx:id="lblStokAman" text="0" styleClass="summary-value"/>
+            <Label text="Bahan tersedia" styleClass="summary-caption"/>
+        </VBox>
+
+        <VBox minWidth="220" prefWidth="255" spacing="10" alignment="CENTER_LEFT">
+            <styleClass>
+                <String fx:value="summary-card"/>
+                <String fx:value="summary-card-orange"/>
+                <String fx:value="summary-card-text-only"/>
+            </styleClass>
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <Label text="Stok Menipis" styleClass="summary-label"/>
+            <Label fx:id="lblStokMenipis" text="0" styleClass="summary-value"/>
+            <Label text="Perlu perhatian" styleClass="summary-caption"/>
+        </VBox>
+
+        <VBox minWidth="220" prefWidth="255" spacing="10" alignment="CENTER_LEFT">
+            <styleClass>
+                <String fx:value="summary-card"/>
+                <String fx:value="summary-card-red"/>
+                <String fx:value="summary-card-text-only"/>
+            </styleClass>
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <Label text="Stok Habis" styleClass="summary-label"/>
+            <Label fx:id="lblStokHabis" text="0" styleClass="summary-value"/>
+            <Label text="Segera isi ulang" styleClass="summary-caption"/>
+        </VBox>
+    </FlowPane>
+
     <VBox VBox.vgrow="ALWAYS" styleClass="surface-card">
         <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
 
-        <Label text="Daftar Stok" styleClass="surface-card-header">
+        <HBox alignment="CENTER_LEFT" spacing="16">
             <VBox.margin><Insets bottom="16"/></VBox.margin>
-        </Label>
+            <VBox HBox.hgrow="ALWAYS" spacing="3">
+                <Label text="Daftar Stok" styleClass="surface-card-header"/>
+                <Label text="Cari dan kelola stok bahan operasional" styleClass="surface-card-caption"/>
+            </VBox>
+            <TextField fx:id="txtSearchStock"
+                       promptText="Cari stok..."
+                       prefWidth="280"
+                       styleClass="search-input"/>
+        </HBox>
+
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="filter-bar">
+            <VBox.margin><Insets bottom="14"/></VBox.margin>
+            <ComboBox fx:id="cmbFilterStatus"
+                      promptText="Semua status"
+                      prefWidth="180"
+                      styleClass="filter-combo"/>
+            <ComboBox fx:id="cmbFilterSatuan"
+                      promptText="Semua satuan"
+                      prefWidth="180"
+                      styleClass="filter-combo"/>
+            <Button text="Reset Filter"
+                    onAction="#handleResetFilter"
+                    styleClass="filter-reset-button"/>
+        </HBox>
 
         <TableView fx:id="tableStock" VBox.vgrow="ALWAYS">
             <columns>

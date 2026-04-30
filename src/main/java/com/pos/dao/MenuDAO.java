@@ -44,6 +44,32 @@ public class MenuDAO {
         return list;
     }
 
+    public List<Menu> findAvailableForTransaction() {
+        List<Menu> list = new ArrayList<>();
+        String sql = """
+            SELECT DISTINCT m.*
+            FROM menus m
+            JOIN stock s ON s.id_menu = m.id_menu
+            WHERE m.is_active = 1
+              AND s.jumlah_stok > 0
+            ORDER BY m.kategori, m.nama_menu
+            """;
+        Connection conn = koneksi.getConnection();
+        if (conn == null) {
+            return list;
+        }
+        try (conn;
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapRow(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public void insert(Menu menu) {
         String sql = "INSERT INTO menus (nama_menu, harga, kategori, is_active) VALUES (?, ?, ?, ?)";
         Connection conn = koneksi.getConnection();

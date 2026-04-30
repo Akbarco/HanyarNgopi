@@ -2,6 +2,8 @@ package com.pos.controller;
 
 import com.pos.service.AuthService;
 import com.pos.util.AlertUtil;
+import javafx.application.Platform;
+import javafx.geometry.Rectangle2D;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -12,6 +14,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.Region;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.InputStream;
@@ -120,7 +123,7 @@ public class DashboardController implements Initializable {
             Scene scene = new Scene(loader.load(), 960, 720);
             stage.setScene(scene);
             stage.setTitle("HanyarNgopi");
-            stage.centerOnScreen();
+            forceFullWindow(stage);
         } catch (Exception e) {
             e.printStackTrace();
             AlertUtil.showError("Error", "Gagal logout.");
@@ -158,5 +161,18 @@ public class DashboardController implements Initializable {
     private String capitalize(String s) {
         if (s == null || s.isEmpty()) return s;
         return s.substring(0, 1).toUpperCase() + s.substring(1);
+    }
+
+    private void forceFullWindow(Stage stage) {
+        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        stage.setMaximized(false);
+        stage.setX(bounds.getMinX());
+        stage.setY(bounds.getMinY());
+        stage.setWidth(bounds.getWidth());
+        stage.setHeight(bounds.getHeight());
+        Platform.runLater(() -> {
+            stage.setMaximized(true);
+            stage.toFront();
+        });
     }
 }

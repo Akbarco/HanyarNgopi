@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
@@ -25,12 +31,113 @@
                 styleClass="action-button"/>
     </HBox>
 
-    <VBox VBox.vgrow="ALWAYS" styleClass="surface-card">
-        <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+    <FlowPane hgap="16" vgap="16" prefWrapLength="1700" styleClass="summary-grid">
+        <VBox minWidth="260" prefWidth="280" spacing="8" alignment="CENTER_LEFT">
+            <styleClass>
+                <String fx:value="summary-card"/>
+                <String fx:value="summary-card-green"/>
+                <String fx:value="transaction-summary-card"/>
+                <String fx:value="summary-card-text-only"/>
+            </styleClass>
+            <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+            <Label text="Total Pembayaran" styleClass="summary-label"/>
+            <Label fx:id="lblTotalPembayaran" text="Rp 0">
+                <styleClass>
+                    <String fx:value="transaction-summary-value"/>
+                </styleClass>
+            </Label>
+            <Label text="Semua transaksi" styleClass="summary-caption"/>
+        </VBox>
 
-        <Label text="Riwayat Transaksi" styleClass="surface-card-header">
-            <VBox.margin><Insets bottom="16"/></VBox.margin>
-        </Label>
+        <VBox minWidth="260" prefWidth="280" spacing="8" alignment="CENTER_LEFT">
+            <styleClass>
+                <String fx:value="summary-card"/>
+                <String fx:value="summary-card-orange"/>
+                <String fx:value="transaction-summary-card"/>
+                <String fx:value="summary-card-text-only"/>
+            </styleClass>
+            <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+            <Label text="Rata-rata" styleClass="summary-label"/>
+            <Label fx:id="lblRataTransaksi" text="Rp 0" styleClass="transaction-summary-value"/>
+            <Label text="Per transaksi" styleClass="summary-caption"/>
+        </VBox>
+
+        <VBox minWidth="260" prefWidth="280" spacing="8" alignment="CENTER_LEFT">
+            <styleClass>
+                <String fx:value="summary-card"/>
+                <String fx:value="summary-card-blue"/>
+                <String fx:value="transaction-summary-card"/>
+                <String fx:value="summary-card-text-only"/>
+            </styleClass>
+            <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+            <Label text="Total Transaksi" styleClass="summary-label"/>
+            <Label fx:id="lblTotalTransaksi" text="0" styleClass="transaction-summary-value"/>
+            <Label text="Tersimpan" styleClass="summary-caption"/>
+        </VBox>
+
+        <VBox minWidth="260" prefWidth="280" spacing="8" alignment="CENTER_LEFT">
+            <styleClass>
+                <String fx:value="summary-card"/>
+                <String fx:value="summary-card-green"/>
+                <String fx:value="transaction-summary-card"/>
+                <String fx:value="summary-card-text-only"/>
+            </styleClass>
+            <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+            <Label text="Metode Terbanyak" styleClass="summary-label"/>
+            <Label fx:id="lblMetodeTerbanyak" text="-" styleClass="transaction-summary-value"/>
+            <Label fx:id="lblMetodeCaption" text="Belum ada transaksi" styleClass="summary-caption"/>
+        </VBox>
+    </FlowPane>
+
+    <VBox VBox.vgrow="ALWAYS" styleClass="surface-card">
+        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+
+        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="menu-table-toolbar">
+            <VBox.margin><Insets bottom="12"/></VBox.margin>
+            <VBox HBox.hgrow="ALWAYS" spacing="3">
+                <Label text="Riwayat Transaksi" styleClass="surface-card-header"/>
+                <Label text="Cari dan filter transaksi penjualan" styleClass="surface-card-caption"/>
+            </VBox>
+            <TextField fx:id="txtSearchTransaksi"
+                       promptText="Cari transaksi atau item..."
+                       prefWidth="300">
+                <styleClass>
+                    <String fx:value="search-input"/>
+                    <String fx:value="kasir-search-input"/>
+                </styleClass>
+            </TextField>
+        </HBox>
+
+        <HBox alignment="CENTER_LEFT" spacing="14">
+            <styleClass>
+                <String fx:value="filter-bar"/>
+                <String fx:value="kasir-filter-bar"/>
+            </styleClass>
+            <VBox.margin><Insets bottom="14"/></VBox.margin>
+            <ComboBox fx:id="cmbFilterMetode"
+                      promptText="Semua metode"
+                      prefWidth="180">
+                <styleClass>
+                    <String fx:value="filter-combo"/>
+                    <String fx:value="kasir-filter-combo"/>
+                </styleClass>
+            </ComboBox>
+            <ComboBox fx:id="cmbSortTotal"
+                      promptText="Urutan default"
+                      prefWidth="210">
+                <styleClass>
+                    <String fx:value="filter-combo"/>
+                    <String fx:value="kasir-filter-combo"/>
+                </styleClass>
+            </ComboBox>
+            <Button text="Reset Filter"
+                    onAction="#handleResetFilter">
+                <styleClass>
+                    <String fx:value="filter-reset-button"/>
+                    <String fx:value="kasir-filter-reset-button"/>
+                </styleClass>
+            </Button>
+        </HBox>
 
         <ScrollPane fx:id="scrollRiwayat" fitToWidth="true" VBox.vgrow="ALWAYS">
             <VBox fx:id="containerRiwayat" spacing="12">

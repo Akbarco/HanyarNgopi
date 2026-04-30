@@ -10,9 +10,11 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.geometry.Rectangle2D;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -20,7 +22,7 @@ import java.util.ResourceBundle;
 public class LoginController implements Initializable {
 
     @FXML private StackPane rootPane;
-    @FXML private VBox loginCard;
+    @FXML private Region loginCard;
     @FXML private TextField txtUsername;
     @FXML private PasswordField txtPassword;
 
@@ -45,7 +47,7 @@ public class LoginController implements Initializable {
             return;
         }
 
-        double targetWidth = Math.max(360, Math.min(560, sceneWidth * 0.74));
+        double targetWidth = Math.max(800, Math.min(920, sceneWidth * 0.90));
         loginCard.setPrefWidth(targetWidth);
         loginCard.setMaxWidth(targetWidth);
     }
@@ -77,10 +79,23 @@ public class LoginController implements Initializable {
             Scene scene = new Scene(loader.load(), 1280, 800);
             stage.setScene(scene);
             stage.setTitle("HanyarNgopi - Dashboard");
-            stage.centerOnScreen();
+            forceFullWindow(stage);
         } catch (Exception e) {
             e.printStackTrace();
             AlertUtil.showError("Error", "Gagal membuka dashboard.");
         }
+    }
+
+    private void forceFullWindow(Stage stage) {
+        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        stage.setMaximized(false);
+        stage.setX(bounds.getMinX());
+        stage.setY(bounds.getMinY());
+        stage.setWidth(bounds.getWidth());
+        stage.setHeight(bounds.getHeight());
+        Platform.runLater(() -> {
+            stage.setMaximized(true);
+            stage.toFront();
+        });
     }
 }

@@ -16,6 +16,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.util.StringConverter;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,14 +85,17 @@ public class LaporanController implements Initializable {
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy", localeId);
     private final DateTimeFormatter fileTimestampFormatter = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
     private String activeTab = "penjualan";
+    private boolean syncingDateControls;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        configureDatePicker(dpMulai);
+        configureDatePicker(dpAkhir);
+
+        syncingDateControls = true;
         dpMulai.setValue(LocalDate.now().withDayOfMonth(1));
         dpAkhir.setValue(LocalDate.now());
-
-        dpMulai.setOnAction(event -> refreshAll());
-        dpAkhir.setOnAction(event -> refreshAll());
+        syncingDateControls = false;
 
         refreshAll();
     }
@@ -165,7 +169,8 @@ public class LaporanController implements Initializable {
                 return;
             }
 
-            ReportData report = buildFullReportData(conn);
+            DateRange range = syncDateRange();
+            ReportData report = buildFullReportData(conn, range);
             writeExcelReport(target.toPath(), report);
             ToastUtil.showSuccess(dpMulai, "Laporan Excel berhasil dibuat.");
         } catch (IOException | SQLException e) {
@@ -195,7 +200,8 @@ public class LaporanController implements Initializable {
                 return;
             }
 
-            ReportData report = buildFullReportData(conn);
+            DateRange range = syncDateRange();
+            ReportData report = buildFullReportData(conn, range);
             writePdfReport(target.toPath(), report);
             ToastUtil.showSuccess(dpMulai, "Laporan PDF berhasil dibuat.");
         } catch (IOException | SQLException e) {
@@ -205,23 +211,79 @@ public class LaporanController implements Initializable {
     }
 
     private void refreshAll() {
-        normalizeDates();
-        updatePeriodLabel();
+        DateRange range = syncDateRange();
+        updatePeriodLabel(range);
         updateActivePanel();
-
-        if ("penjualan".equals(activeTab)) {
-            loadPenjualanReport();
-        } else if ("stok".equals(activeTab)) {
-            loadStokReport();
-        } else {
-            loadHutangReport();
-        }
+        loadPenjualanReport(range);
+        loadStokReport(range);
+        loadHutangReport(range);
     }
 
-    private void normalizeDates() {
+    private void configureDatePicker(DatePicker datePicker) {
+        datePicker.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(LocalDate date) {
+                return date == null ? "" : date.format(dateFormatter);
+            }
+
+            @Override
+            public LocalDate fromString(String string) {
+                if (string == null || string.isBlank()) {
+                    return null;
+                }
+                try {
+                    return LocalDate.parse(string.trim(), dateFormatter);
+                } catch (DateTimeParseException e) {
+                    return null;
+                }
+            }
+        });
+
+        datePicker.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (!syncingDateControls) {
+                refreshAll();
+            }
+        });
+        datePicker.getEditor().setOnAction(event -> commitDatePicker(datePicker));
+        datePicker.getEditor().focusedProperty().addListener((obs, oldValue, focused) -> {
+            if (!focused) {
+                commitDatePicker(datePicker);
+            }
+        });
+    }
+
+    private void commitDatePicker(DatePicker datePicker) {
+        String text = datePicker.getEditor().getText();
+        LocalDate parsed = datePicker.getConverter().fromString(text);
+
+        if (text == null || text.isBlank()) {
+            if (datePicker.getValue() != null) {
+                datePicker.setValue(null);
+            }
+            return;
+        }
+
+        if (parsed != null) {
+            if (!parsed.equals(datePicker.getValue())) {
+                datePicker.setValue(parsed);
+            } else {
+                datePicker.getEditor().setText(datePicker.getConverter().toString(parsed));
+            }
+            return;
+        }
+
+        datePicker.getEditor().setText(datePicker.getConverter().toString(datePicker.getValue()));
+    }
+
+    private DateRange syncDateRange() {
+        return normalizeDates();
+    }
+
+    private DateRange normalizeDates() {
         LocalDate mulai = dpMulai.getValue();
         LocalDate akhir = dpAkhir.getValue();
 
+        syncingDateControls = true;
         if (mulai == null) {
             mulai = LocalDate.now().withDayOfMonth(1);
             dpMulai.setValue(mulai);
@@ -233,13 +295,19 @@ public class LaporanController implements Initializable {
         }
 
         if (akhir.isBefore(mulai)) {
-            dpAkhir.setValue(mulai);
+            akhir = mulai;
+            dpAkhir.setValue(akhir);
         }
+        syncingDateControls = false;
+
+        dpMulai.getEditor().setText(dpMulai.getConverter().toString(mulai));
+        dpAkhir.getEditor().setText(dpAkhir.getConverter().toString(akhir));
+        return new DateRange(mulai, akhir);
     }
 
-    private void updatePeriodLabel() {
-        lblPeriode.setText(dpMulai.getValue().format(periodFormatter) + " - " +
-                dpAkhir.getValue().format(periodFormatter));
+    private void updatePeriodLabel(DateRange range) {
+        lblPeriode.setText(range.start().format(periodFormatter) + " - " +
+                range.end().format(periodFormatter));
     }
 
     private void updateActivePanel() {
@@ -267,7 +335,7 @@ public class LaporanController implements Initializable {
         }
     }
 
-    private void loadPenjualanReport() {
+    private void loadPenjualanReport(DateRange range) {
         clear(containerPenjualanPerMenu);
         clear(containerDetailTransaksi);
         lblTotalPenjualan.setText("Rp 0");
@@ -280,9 +348,9 @@ public class LaporanController implements Initializable {
                 return;
             }
 
-            loadPenjualanSummary(conn);
-            loadPenjualanPerMenu(conn);
-            loadDetailTransaksi(conn);
+            loadPenjualanSummary(conn, range);
+            loadPenjualanPerMenu(conn, range);
+            loadDetailTransaksi(conn, range);
         } catch (SQLException e) {
             e.printStackTrace();
             showEmpty(containerPenjualanPerMenu, "Gagal memuat data penjualan");
@@ -290,15 +358,15 @@ public class LaporanController implements Initializable {
         }
     }
 
-    private void loadPenjualanSummary(Connection conn) throws SQLException {
+    private void loadPenjualanSummary(Connection conn, DateRange range) throws SQLException {
         String sql = """
                 SELECT COALESCE(SUM(total), 0) AS total_penjualan,
                        COUNT(*) AS jumlah_transaksi
                 FROM transactions
-                WHERE date(tanggal) BETWEEN ? AND ?
+                WHERE tanggal >= ? AND tanggal < ?
                 """;
 
-        try (PreparedStatement ps = preparePeriod(conn, sql);
+        try (PreparedStatement ps = prepareTransactionPeriod(conn, sql, range);
              ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
                 lblTotalPenjualan.setText(formatCurrency(rs.getDouble("total_penjualan")));
@@ -307,7 +375,7 @@ public class LaporanController implements Initializable {
         }
     }
 
-    private void loadPenjualanPerMenu(Connection conn) throws SQLException {
+    private void loadPenjualanPerMenu(Connection conn, DateRange range) throws SQLException {
         String sql = """
                 SELECT COALESCE(td.nama_menu_snapshot, m.nama_menu) AS nama_menu,
                        SUM(td.qty) AS total_qty,
@@ -315,12 +383,12 @@ public class LaporanController implements Initializable {
                 FROM transaction_detail td
                 JOIN transactions t ON td.id_transaksi = t.id_transaksi
                 LEFT JOIN menus m ON td.id_menu = m.id_menu
-                WHERE date(t.tanggal) BETWEEN ? AND ?
+                WHERE t.tanggal >= ? AND t.tanggal < ?
                 GROUP BY COALESCE(td.nama_menu_snapshot, m.nama_menu)
                 ORDER BY total_nominal DESC, total_qty DESC
                 """;
 
-        try (PreparedStatement ps = preparePeriod(conn, sql);
+        try (PreparedStatement ps = prepareTransactionPeriod(conn, sql, range);
              ResultSet rs = ps.executeQuery()) {
             boolean found = false;
             while (rs.next()) {
@@ -338,18 +406,18 @@ public class LaporanController implements Initializable {
         }
     }
 
-    private void loadDetailTransaksi(Connection conn) throws SQLException {
+    private void loadDetailTransaksi(Connection conn, DateRange range) throws SQLException {
         String sql = """
                 SELECT t.id_transaksi,
                        t.tanggal,
                        t.total
                 FROM transactions t
-                WHERE date(t.tanggal) BETWEEN ? AND ?
+                WHERE t.tanggal >= ? AND t.tanggal < ?
                 ORDER BY t.tanggal DESC, t.id_transaksi DESC
                 LIMIT 20
                 """;
 
-        try (PreparedStatement ps = preparePeriod(conn, sql);
+        try (PreparedStatement ps = prepareTransactionPeriod(conn, sql, range);
              ResultSet rs = ps.executeQuery()) {
             boolean found = false;
             while (rs.next()) {
@@ -370,7 +438,7 @@ public class LaporanController implements Initializable {
         }
     }
 
-    private void loadStokReport() {
+    private void loadStokReport(DateRange range) {
         clear(containerStokMenipis);
         clear(containerStokAman);
         clear(containerDetailStok);
@@ -456,7 +524,7 @@ public class LaporanController implements Initializable {
         }
     }
 
-    private void loadHutangReport() {
+    private void loadHutangReport(DateRange range) {
         clear(containerHutangBelum);
         clear(containerPiutangBelum);
 
@@ -468,23 +536,23 @@ public class LaporanController implements Initializable {
                 return;
             }
 
-            lblHutangBelum.setText(formatCurrency(sumDebt(conn, "hutang", "belum")));
-            lblHutangLunas.setText(formatCurrency(sumDebt(conn, "hutang", "lunas")));
-            lblTotalHutang.setText(formatCurrency(sumDebtTotal(conn, "hutang")));
+            lblHutangBelum.setText(formatCurrency(sumDebt(conn, "hutang", "belum", range)));
+            lblHutangLunas.setText(formatCurrency(sumDebt(conn, "hutang", "lunas", range)));
+            lblTotalHutang.setText(formatCurrency(sumDebtTotal(conn, "hutang", range)));
 
-            lblPiutangBelum.setText(formatCurrency(sumDebt(conn, "piutang", "belum")));
-            lblPiutangLunas.setText(formatCurrency(sumDebt(conn, "piutang", "lunas")));
-            lblTotalPiutang.setText(formatCurrency(sumDebtTotal(conn, "piutang")));
+            lblPiutangBelum.setText(formatCurrency(sumDebt(conn, "piutang", "belum", range)));
+            lblPiutangLunas.setText(formatCurrency(sumDebt(conn, "piutang", "lunas", range)));
+            lblTotalPiutang.setText(formatCurrency(sumDebtTotal(conn, "piutang", range)));
 
-            loadDebtList(conn, "hutang", containerHutangBelum);
-            loadDebtList(conn, "piutang", containerPiutangBelum);
+            loadDebtList(conn, "hutang", containerHutangBelum, range);
+            loadDebtList(conn, "piutang", containerPiutangBelum, range);
         } catch (SQLException e) {
             e.printStackTrace();
             setDebtFallback();
         }
     }
 
-    private double sumDebt(Connection conn, String tipe, String status) throws SQLException {
+    private double sumDebt(Connection conn, String tipe, String status, DateRange range) throws SQLException {
         String sql = """
                 SELECT COALESCE(SUM(nominal), 0)
                 FROM debts
@@ -494,15 +562,15 @@ public class LaporanController implements Initializable {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tipe);
             ps.setString(2, status);
-            ps.setString(3, dpMulai.getValue().toString());
-            ps.setString(4, dpAkhir.getValue().toString());
+            ps.setString(3, range.start().toString());
+            ps.setString(4, range.end().toString());
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? rs.getDouble(1) : 0;
             }
         }
     }
 
-    private double sumDebtTotal(Connection conn, String tipe) throws SQLException {
+    private double sumDebtTotal(Connection conn, String tipe, DateRange range) throws SQLException {
         String sql = """
                 SELECT COALESCE(SUM(nominal), 0)
                 FROM debts
@@ -511,15 +579,15 @@ public class LaporanController implements Initializable {
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tipe);
-            ps.setString(2, dpMulai.getValue().toString());
-            ps.setString(3, dpAkhir.getValue().toString());
+            ps.setString(2, range.start().toString());
+            ps.setString(3, range.end().toString());
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? rs.getDouble(1) : 0;
             }
         }
     }
 
-    private void loadDebtList(Connection conn, String tipe, VBox target) throws SQLException {
+    private void loadDebtList(Connection conn, String tipe, VBox target, DateRange range) throws SQLException {
         String sql = """
                 SELECT nama, nominal, tanggal, keterangan
                 FROM debts
@@ -531,8 +599,8 @@ public class LaporanController implements Initializable {
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tipe);
-            ps.setString(2, dpMulai.getValue().toString());
-            ps.setString(3, dpAkhir.getValue().toString());
+            ps.setString(2, range.start().toString());
+            ps.setString(3, range.end().toString());
 
             try (ResultSet rs = ps.executeQuery()) {
                 boolean found = false;
@@ -554,23 +622,23 @@ public class LaporanController implements Initializable {
         }
     }
 
-    private ReportData buildFullReportData(Connection conn) throws SQLException {
-        String period = dpMulai.getValue().toString() + " - " + dpAkhir.getValue().toString();
-        return new ReportData("Laporan Lengkap", period, parseCsv(buildFullExportCsv(conn)));
+    private ReportData buildFullReportData(Connection conn, DateRange range) throws SQLException {
+        String period = range.start() + " - " + range.end();
+        return new ReportData("Laporan Lengkap", period, parseCsv(buildFullExportCsv(conn, range)));
     }
 
-    private String buildFullExportCsv(Connection conn) throws SQLException {
+    private String buildFullExportCsv(Connection conn, DateRange range) throws SQLException {
         StringBuilder csv = new StringBuilder();
-        appendReportTitle(csv, "Laporan Lengkap");
+        appendReportTitle(csv, "Laporan Lengkap", range);
 
-        appendCsvContentWithoutHeader(csv, buildSalesCsv(conn));
+        appendCsvContentWithoutHeader(csv, buildSalesCsv(conn, range));
         csv.append(System.lineSeparator());
 
         appendCsvRow(csv, "Detail Stok");
-        appendCsvContentWithoutHeader(csv, buildStockCsv(conn));
+        appendCsvContentWithoutHeader(csv, buildStockCsv(conn, range));
         csv.append(System.lineSeparator());
 
-        appendCsvContentWithoutHeader(csv, buildDebtCsv(conn));
+        appendCsvContentWithoutHeader(csv, buildDebtCsv(conn, range));
         return csv.toString();
     }
 
@@ -1365,17 +1433,17 @@ public class LaporanController implements Initializable {
         }
     }
 
-    private String buildSalesCsv(Connection conn) throws SQLException {
+    private String buildSalesCsv(Connection conn, DateRange range) throws SQLException {
         StringBuilder csv = new StringBuilder();
-        appendReportTitle(csv, "Laporan Penjualan");
+        appendReportTitle(csv, "Laporan Penjualan", range);
 
         String summarySql = """
                 SELECT COALESCE(SUM(total), 0) AS total_penjualan,
                        COUNT(*) AS jumlah_transaksi
                 FROM transactions
-                WHERE date(tanggal) BETWEEN ? AND ?
+                WHERE tanggal >= ? AND tanggal < ?
                 """;
-        try (PreparedStatement ps = preparePeriod(conn, summarySql);
+        try (PreparedStatement ps = prepareTransactionPeriod(conn, summarySql, range);
              ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
                 appendCsvRow(csv, "Total Penjualan", String.valueOf((int) Math.round(rs.getDouble("total_penjualan"))));
@@ -1393,11 +1461,11 @@ public class LaporanController implements Initializable {
                 FROM transaction_detail td
                 JOIN transactions t ON td.id_transaksi = t.id_transaksi
                 LEFT JOIN menus m ON td.id_menu = m.id_menu
-                WHERE date(t.tanggal) BETWEEN ? AND ?
+                WHERE t.tanggal >= ? AND t.tanggal < ?
                 GROUP BY COALESCE(td.nama_menu_snapshot, m.nama_menu)
                 ORDER BY total_nominal DESC, total_qty DESC
                 """;
-        try (PreparedStatement ps = preparePeriod(conn, perMenuSql);
+        try (PreparedStatement ps = prepareTransactionPeriod(conn, perMenuSql, range);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 appendCsvRow(csv,
@@ -1413,10 +1481,10 @@ public class LaporanController implements Initializable {
         String detailSql = """
                 SELECT t.id_transaksi, t.tanggal, t.total
                 FROM transactions t
-                WHERE date(t.tanggal) BETWEEN ? AND ?
+                WHERE t.tanggal >= ? AND t.tanggal < ?
                 ORDER BY t.tanggal DESC, t.id_transaksi DESC
                 """;
-        try (PreparedStatement ps = preparePeriod(conn, detailSql);
+        try (PreparedStatement ps = prepareTransactionPeriod(conn, detailSql, range);
              ResultSet rs = ps.executeQuery()) {
             int displayId = 1;
             while (rs.next()) {
@@ -1434,9 +1502,9 @@ public class LaporanController implements Initializable {
         return csv.toString();
     }
 
-    private String buildStockCsv(Connection conn) throws SQLException {
+    private String buildStockCsv(Connection conn, DateRange range) throws SQLException {
         StringBuilder csv = new StringBuilder();
-        appendReportTitle(csv, "Laporan Stok");
+        appendReportTitle(csv, "Laporan Stok", range);
         appendCsvRow(csv, "Nama Barang", "Satuan", "Jumlah", "Minimum", "Status");
 
         String sql = """
@@ -1463,30 +1531,30 @@ public class LaporanController implements Initializable {
         return csv.toString();
     }
 
-    private String buildDebtCsv(Connection conn) throws SQLException {
+    private String buildDebtCsv(Connection conn, DateRange range) throws SQLException {
         StringBuilder csv = new StringBuilder();
-        appendReportTitle(csv, "Laporan Hutang Piutang");
+        appendReportTitle(csv, "Laporan Hutang Piutang", range);
 
         appendCsvRow(csv, "Ringkasan Hutang/Piutang");
         appendCsvRow(csv, "Jenis", "Belum Lunas", "Sudah Lunas", "Total");
         appendCsvRow(csv, "Hutang",
-                String.valueOf((int) Math.round(sumDebt(conn, "hutang", "belum"))),
-                String.valueOf((int) Math.round(sumDebt(conn, "hutang", "lunas"))),
-                String.valueOf((int) Math.round(sumDebtTotal(conn, "hutang"))));
+                String.valueOf((int) Math.round(sumDebt(conn, "hutang", "belum", range))),
+                String.valueOf((int) Math.round(sumDebt(conn, "hutang", "lunas", range))),
+                String.valueOf((int) Math.round(sumDebtTotal(conn, "hutang", range))));
         appendCsvRow(csv, "Piutang",
-                String.valueOf((int) Math.round(sumDebt(conn, "piutang", "belum"))),
-                String.valueOf((int) Math.round(sumDebt(conn, "piutang", "lunas"))),
-                String.valueOf((int) Math.round(sumDebtTotal(conn, "piutang"))));
+                String.valueOf((int) Math.round(sumDebt(conn, "piutang", "belum", range))),
+                String.valueOf((int) Math.round(sumDebt(conn, "piutang", "lunas", range))),
+                String.valueOf((int) Math.round(sumDebtTotal(conn, "piutang", range))));
         csv.append(System.lineSeparator());
 
-        appendDebtRows(csv, conn, "hutang");
+        appendDebtRows(csv, conn, "hutang", range);
         csv.append(System.lineSeparator());
-        appendDebtRows(csv, conn, "piutang");
+        appendDebtRows(csv, conn, "piutang", range);
 
         return csv.toString();
     }
 
-    private void appendDebtRows(StringBuilder csv, Connection conn, String tipe) throws SQLException {
+    private void appendDebtRows(StringBuilder csv, Connection conn, String tipe, DateRange range) throws SQLException {
         appendCsvRow(csv, capitalize(tipe) + " Belum Lunas");
         appendCsvRow(csv, "Nama", "Nominal", "Tanggal", "Keterangan");
 
@@ -1498,8 +1566,8 @@ public class LaporanController implements Initializable {
                 """;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tipe);
-            ps.setString(2, dpMulai.getValue().toString());
-            ps.setString(3, dpAkhir.getValue().toString());
+            ps.setString(2, range.start().toString());
+            ps.setString(3, range.end().toString());
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     appendCsvRow(csv,
@@ -1512,9 +1580,9 @@ public class LaporanController implements Initializable {
         }
     }
 
-    private void appendReportTitle(StringBuilder csv, String title) {
+    private void appendReportTitle(StringBuilder csv, String title, DateRange range) {
         appendCsvRow(csv, title);
-        appendCsvRow(csv, "Periode", dpMulai.getValue().toString() + " - " + dpAkhir.getValue().toString());
+        appendCsvRow(csv, "Periode", range.start() + " - " + range.end());
         csv.append(System.lineSeparator());
     }
 
@@ -1539,10 +1607,17 @@ public class LaporanController implements Initializable {
         return escaped;
     }
 
-    private PreparedStatement preparePeriod(Connection conn, String sql) throws SQLException {
+    private PreparedStatement preparePeriod(Connection conn, String sql, DateRange range) throws SQLException {
         PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setString(1, dpMulai.getValue().toString());
-        ps.setString(2, dpAkhir.getValue().toString());
+        ps.setString(1, range.start().toString());
+        ps.setString(2, range.end().toString());
+        return ps;
+    }
+
+    private PreparedStatement prepareTransactionPeriod(Connection conn, String sql, DateRange range) throws SQLException {
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, range.start() + " 00:00:00");
+        ps.setString(2, range.end().plusDays(1) + " 00:00:00");
         return ps;
     }
 
@@ -1806,6 +1881,8 @@ public class LaporanController implements Initializable {
     }
 
     private record ReportData(String title, String period, List<String[]> rows) {}
+
+    private record DateRange(LocalDate start, LocalDate end) {}
 
     private record TransactionSummary(String items, String metode) {}
 }

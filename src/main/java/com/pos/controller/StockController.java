@@ -8,20 +8,27 @@ import com.pos.util.AlertUtil;
 import com.pos.util.ToastUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.net.URL;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class StockController implements Initializable {
+
+    private static final ObservableList<String> SATUAN_OPTIONS = FXCollections.observableArrayList(
+            "kg", "g", "liter", "ml", "pcs", "box", "sachet", "botol"
+    );
 
     @FXML private TableView<Stock> tableStock;
     @FXML private TableColumn<Stock, String> colNama;
@@ -30,15 +37,47 @@ public class StockController implements Initializable {
     @FXML private TableColumn<Stock, Integer> colMinimum;
     @FXML private TableColumn<Stock, String> colStatus;
     @FXML private TableColumn<Stock, Void> colAksi;
+    @FXML private Label lblTotalProduk;
+    @FXML private Label lblStokAman;
+    @FXML private Label lblStokMenipis;
+    @FXML private Label lblStokHabis;
+    @FXML private TextField txtSearchStock;
+    @FXML private ComboBox<String> cmbFilterStatus;
+    @FXML private ComboBox<String> cmbFilterSatuan;
 
     private final StockService stockService = new StockService();
     private final MenuDAO menuDAO = new MenuDAO();
+    private final Locale localeId = new Locale("id", "ID");
     private final ObservableList<Stock> stockList = FXCollections.observableArrayList();
+    private final FilteredList<Stock> filteredStockList = new FilteredList<>(stockList, stock -> true);
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setupColumns();
+        setupSearch();
         loadData();
+    }
+
+    private void setupSearch() {
+        if (tableStock != null) {
+            tableStock.setItems(filteredStockList);
+        }
+        if (txtSearchStock != null) {
+            txtSearchStock.textProperty().addListener((obs, oldValue, newValue) -> applySearchFilter());
+        }
+        if (cmbFilterStatus != null) {
+            cmbFilterStatus.setItems(FXCollections.observableArrayList(
+                    "Semua status", "Stok Aman", "Stok Menipis", "Stok Habis"
+            ));
+            cmbFilterStatus.setValue("Semua status");
+            cmbFilterStatus.valueProperty().addListener((obs, oldValue, newValue) -> applySearchFilter());
+        }
+        if (cmbFilterSatuan != null) {
+            cmbFilterSatuan.setItems(FXCollections.observableArrayList("Semua satuan"));
+            cmbFilterSatuan.getItems().addAll(SATUAN_OPTIONS);
+            cmbFilterSatuan.setValue("Semua satuan");
+            cmbFilterSatuan.valueProperty().addListener((obs, oldValue, newValue) -> applySearchFilter());
+        }
     }
 
     private void setupColumns() {
@@ -182,12 +221,101 @@ public class StockController implements Initializable {
 
     private void loadData() {
         stockList.setAll(stockService.getAllStock());
-        tableStock.setItems(stockList);
+        refreshSatuanFilterOptions();
+        applySearchFilter();
+        updateSummaryCards();
+    }
+
+    private void applySearchFilter() {
+        String keyword = txtSearchStock == null ? "" : txtSearchStock.getText();
+        String query = keyword == null ? "" : keyword.trim().toLowerCase();
+        String status = cmbFilterStatus == null ? "Semua status" : cmbFilterStatus.getValue();
+        String satuan = cmbFilterSatuan == null ? "Semua satuan" : cmbFilterSatuan.getValue();
+
+        filteredStockList.setPredicate(stock -> {
+            boolean matchesSearch = query.isBlank()
+                    || contains(stock.getNamaMenu(), query)
+                    || contains(stock.getSatuan(), query)
+                    || contains(stock.getStatus(), query)
+                    || String.valueOf(stock.getJumlahStok()).contains(query)
+                    || String.valueOf(stock.getStokMinimum()).contains(query);
+            boolean matchesStatus = status == null
+                    || "Semua status".equals(status)
+                    || matchesStockStatus(stock, status);
+            boolean matchesSatuan = satuan == null
+                    || "Semua satuan".equals(satuan)
+                    || satuan.equalsIgnoreCase(stock.getSatuan());
+
+            return matchesSearch && matchesStatus && matchesSatuan;
+        });
+    }
+
+    private void refreshSatuanFilterOptions() {
+        if (cmbFilterSatuan == null) {
+            return;
+        }
+        String current = cmbFilterSatuan.getValue() == null ? "Semua satuan" : cmbFilterSatuan.getValue();
+        ObservableList<String> options = FXCollections.observableArrayList("Semua satuan");
+        for (String option : SATUAN_OPTIONS) {
+            if (!options.contains(option)) {
+                options.add(option);
+            }
+        }
+        for (Stock stock : stockList) {
+            String satuan = stock.getSatuan();
+            if (satuan != null && !satuan.isBlank() && !options.contains(satuan)) {
+                options.add(satuan);
+            }
+        }
+        cmbFilterSatuan.setItems(options);
+        cmbFilterSatuan.setValue(options.contains(current) ? current : "Semua satuan");
+    }
+
+    private boolean matchesStockStatus(Stock stock, String status) {
+        return switch (status) {
+            case "Stok Habis" -> stock.getJumlahStok() <= 0;
+            case "Stok Menipis" -> stock.getJumlahStok() > 0
+                    && stock.getJumlahStok() <= stock.getStokMinimum();
+            case "Stok Aman" -> stock.getJumlahStok() > stock.getStokMinimum();
+            default -> true;
+        };
+    }
+
+    private void updateSummaryCards() {
+        int total = stockList.size();
+        long habis = stockList.stream()
+                .filter(stock -> stock.getJumlahStok() <= 0)
+                .count();
+        long menipis = stockList.stream()
+                .filter(stock -> stock.getJumlahStok() > 0 && stock.getJumlahStok() <= stock.getStokMinimum())
+                .count();
+        long aman = stockList.stream()
+                .filter(stock -> stock.getJumlahStok() > stock.getStokMinimum())
+                .count();
+
+        setLabel(lblTotalProduk, String.valueOf(total));
+        setLabel(lblStokAman, String.valueOf(aman));
+        setLabel(lblStokMenipis, String.valueOf(menipis));
+        setLabel(lblStokHabis, String.valueOf(habis));
+    }
+
+    private void setLabel(Label label, String value) {
+        if (label != null) {
+            label.setText(value);
+        }
     }
 
     @FXML
     public void handleTambahStock() {
         showTambahDialog();
+    }
+
+    @FXML
+    public void handleResetFilter() {
+        if (txtSearchStock != null) txtSearchStock.clear();
+        if (cmbFilterStatus != null) cmbFilterStatus.setValue("Semua status");
+        if (cmbFilterSatuan != null) cmbFilterSatuan.setValue("Semua satuan");
+        applySearchFilter();
     }
 
     private void showTambahDialog() {
@@ -199,13 +327,12 @@ public class StockController implements Initializable {
         dialog.setTitle("Tambah Stok Baru");
         dialog.setResizable(false);
 
-        VBox root = new VBox(12);
-        root.setPadding(new Insets(24));
-        root.setStyle("-fx-background-color: white;");
+        VBox root = new VBox(16);
+        root.setPadding(new Insets(32));
+        root.getStyleClass().add("dialog-root");
 
         Label lblTitle = new Label("Tambah Stok Baru");
-        lblTitle.setStyle(
-                "-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #111827;");
+        lblTitle.getStyleClass().add("dialog-title");
 
         // Menu
         Label lblMenu = fieldLabel("Menu");
@@ -213,7 +340,7 @@ public class StockController implements Initializable {
         cmbMenu.setItems(FXCollections.observableArrayList(menuDAO.findByActive(true)));
         cmbMenu.setPromptText("Pilih menu");
         cmbMenu.setMaxWidth(Double.MAX_VALUE);
-        cmbMenu.setStyle(inputStyle());
+        cmbMenu.getStyleClass().add("combo-input");
         cmbMenu.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(Menu item, boolean empty) {
@@ -228,6 +355,7 @@ public class StockController implements Initializable {
                 setText(empty || item == null ? null : item.getNamaMenu());
             }
         });
+        enableMenuKeyboardJump(cmbMenu);
 
         // Jumlah & Satuan dalam 1 row
         Label lblJumlah = fieldLabel("Jumlah");
@@ -235,14 +363,13 @@ public class StockController implements Initializable {
 
         TextField txtJumlah = new TextField();
         txtJumlah.setPromptText("Jumlah stock");
-        txtJumlah.setStyle(inputStyle());
+        txtJumlah.getStyleClass().add("text-input");
 
         ComboBox<String> cmbSatuan = new ComboBox<>();
-        cmbSatuan.setItems(FXCollections.observableArrayList(
-                "kg", "g", "liter", "ml", "pcs", "box", "sachet", "botol"));
+        cmbSatuan.setItems(SATUAN_OPTIONS);
         cmbSatuan.setPromptText("Pilih satuan");
         cmbSatuan.setMaxWidth(Double.MAX_VALUE);
-        cmbSatuan.setStyle(inputStyle());
+        cmbSatuan.getStyleClass().add("combo-input");
 
         HBox lblJumlahSatuan = new HBox(12, wrapLabel(lblJumlah), wrapLabel(lblSatuan));
         HBox inputJumlahSatuan = new HBox(12, txtJumlah, cmbSatuan);
@@ -252,21 +379,17 @@ public class StockController implements Initializable {
         // Stok Minimum
         Label lblMin = fieldLabel("Stok Minimum");
         TextField txtMin = new TextField("0");
-        txtMin.setStyle(inputStyle());
+        txtMin.getStyleClass().add("text-input");
 
         // Buttons
         Button btnBatal = new Button("Batal");
-        btnBatal.setStyle(
-                "-fx-background-color: #F3F4F6; -fx-text-fill: #374151;" +
-                        "-fx-background-radius: 8; -fx-cursor: hand;" +
-                        "-fx-pref-height: 40; -fx-pref-width: 100;");
+        btnBatal.getStyleClass().add("secondary-button");
+        btnBatal.setPrefWidth(128);
         btnBatal.setOnAction(e -> dialog.close());
 
         Button btnTambah = new Button("Tambah");
-        btnTambah.setStyle(
-                "-fx-background-color: linear-gradient(to right, #5B4BFF, #4F46E5); -fx-text-fill: white;" +
-                        "-fx-background-radius: 8; -fx-cursor: hand;" +
-                        "-fx-pref-height: 40; -fx-pref-width: 100;");
+        btnTambah.getStyleClass().add("primary-button");
+        btnTambah.setPrefWidth(150);
         btnTambah.setOnAction(e -> {
             Menu menu = cmbMenu.getValue();
             String jumlahStr = txtJumlah.getText().trim();
@@ -306,8 +429,35 @@ public class StockController implements Initializable {
                 btnBox
         );
 
-        dialog.setScene(new Scene(root, 460, 400));
+        dialog.setScene(createDialogScene(root, 560, 460));
         dialog.showAndWait();
+    }
+
+    private void enableMenuKeyboardJump(ComboBox<Menu> comboBox) {
+        ObservableList<Menu> allItems = FXCollections.observableArrayList(comboBox.getItems());
+        comboBox.setOnHidden(event -> comboBox.setItems(allItems));
+        comboBox.addEventFilter(KeyEvent.KEY_TYPED, event -> {
+            String key = event.getCharacter();
+            if (key == null || key.isBlank() || allItems.isEmpty()) {
+                return;
+            }
+
+            String query = key.trim().toLowerCase(localeId);
+            ObservableList<Menu> matches = FXCollections.observableArrayList();
+            for (Menu menu : allItems) {
+                String name = menu.getNamaMenu();
+                if (name != null && name.toLowerCase(localeId).startsWith(query)) {
+                    matches.add(menu);
+                }
+            }
+            if (matches.isEmpty()) {
+                return;
+            }
+            comboBox.setItems(matches);
+            comboBox.getSelectionModel().selectFirst();
+            comboBox.show();
+            event.consume();
+        });
     }
 
     private void showEditDialog(Stock stock) {
@@ -319,60 +469,60 @@ public class StockController implements Initializable {
         dialog.setTitle("Edit Stok");
         dialog.setResizable(false);
 
-        VBox root = new VBox(12);
-        root.setPadding(new Insets(24));
-        root.setStyle("-fx-background-color: white;");
+        VBox root = new VBox(16);
+        root.setPadding(new Insets(32));
+        root.getStyleClass().add("dialog-root");
 
         Label lblTitle = new Label("Edit Stok — " + stock.getNamaMenu());
-        lblTitle.setStyle(
-                "-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #111827;");
+        lblTitle.getStyleClass().add("dialog-title");
 
         // Nama barang (readonly)
         Label lblNama = fieldLabel("Nama Barang");
         TextField txtNama = new TextField(stock.getNamaMenu());
         txtNama.setEditable(false);
-        txtNama.setStyle(inputStyle() +
-                "-fx-background-color: #F9FAFB; -fx-text-fill: #6B7280;");
+        txtNama.getStyleClass().add("text-input");
 
         // Jumlah & Satuan
         Label lblJumlah = fieldLabel("Jumlah");
         Label lblSatuan = fieldLabel("Satuan");
 
         TextField txtJumlah = new TextField(String.valueOf(stock.getJumlahStok()));
-        txtJumlah.setStyle(inputStyle());
+        txtJumlah.getStyleClass().add("text-input");
 
-        TextField txtSatuan = new TextField(stock.getSatuan());
-        txtSatuan.setStyle(inputStyle());
+        ComboBox<String> cmbSatuan = new ComboBox<>();
+        cmbSatuan.setItems(SATUAN_OPTIONS);
+        if (stock.getSatuan() != null && !SATUAN_OPTIONS.contains(stock.getSatuan())) {
+            cmbSatuan.getItems().add(stock.getSatuan());
+        }
+        cmbSatuan.setValue(stock.getSatuan());
+        cmbSatuan.setMaxWidth(Double.MAX_VALUE);
+        cmbSatuan.getStyleClass().add("combo-input");
 
         HBox lblRow = new HBox(12, wrapLabel(lblJumlah), wrapLabel(lblSatuan));
-        HBox inputRow = new HBox(12, txtJumlah, txtSatuan);
+        HBox inputRow = new HBox(12, txtJumlah, cmbSatuan);
         HBox.setHgrow(txtJumlah, Priority.ALWAYS);
-        HBox.setHgrow(txtSatuan, Priority.ALWAYS);
+        HBox.setHgrow(cmbSatuan, Priority.ALWAYS);
 
         // Stok Minimum
         Label lblMin = fieldLabel("Stok Minimum");
         TextField txtMin = new TextField(String.valueOf(stock.getStokMinimum()));
-        txtMin.setStyle(inputStyle());
+        txtMin.getStyleClass().add("text-input");
 
         // Buttons
         Button btnBatal = new Button("Batal");
-        btnBatal.setStyle(
-                "-fx-background-color: #F3F4F6; -fx-text-fill: #374151;" +
-                        "-fx-background-radius: 8; -fx-cursor: hand;" +
-                        "-fx-pref-height: 40; -fx-pref-width: 100;");
+        btnBatal.getStyleClass().add("secondary-button");
+        btnBatal.setPrefWidth(128);
         btnBatal.setOnAction(e -> dialog.close());
 
         Button btnSimpan = new Button("Simpan");
-        btnSimpan.setStyle(
-                "-fx-background-color: linear-gradient(to right, #5B4BFF, #4F46E5); -fx-text-fill: white;" +
-                        "-fx-background-radius: 8; -fx-cursor: hand;" +
-                        "-fx-pref-height: 40; -fx-pref-width: 100;");
+        btnSimpan.getStyleClass().add("primary-button");
+        btnSimpan.setPrefWidth(150);
         btnSimpan.setOnAction(e -> {
             String jumlahStr = txtJumlah.getText().trim();
-            String satuan = txtSatuan.getText().trim();
+            String satuan = cmbSatuan.getValue();
             String minStr = txtMin.getText().trim();
 
-            if (jumlahStr.isEmpty() || satuan.isEmpty()) {
+            if (jumlahStr.isEmpty() || satuan == null || satuan.isBlank()) {
                 AlertUtil.showError("Validasi", "Jumlah dan satuan harus diisi!");
                 return;
             }
@@ -407,7 +557,7 @@ public class StockController implements Initializable {
                 btnBox
         );
 
-        dialog.setScene(new Scene(root, 460, 420));
+        dialog.setScene(createDialogScene(root, 560, 500));
         dialog.showAndWait();
     }
 
@@ -415,9 +565,14 @@ public class StockController implements Initializable {
 
     private Label fieldLabel(String text) {
         Label lbl = new Label(text);
-        lbl.setStyle(
-                "-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #374151;");
+        lbl.getStyleClass().add("form-label");
         return lbl;
+    }
+
+    private Scene createDialogScene(VBox root, double width, double height) {
+        Scene scene = new Scene(root, width, height);
+        scene.getStylesheets().add(getClass().getResource("/com/pos/view/css/menu.css").toExternalForm());
+        return scene;
     }
 
     private VBox wrapLabel(Label lbl) {
@@ -430,5 +585,9 @@ public class StockController implements Initializable {
         return "-fx-background-color: #F3F4F6; -fx-background-radius: 8;" +
                 "-fx-border-color: transparent; -fx-pref-height: 40;" +
                 "-fx-font-size: 13; -fx-padding: 0 12 0 12;";
+    }
+
+    private boolean contains(String source, String query) {
+        return source != null && source.toLowerCase().contains(query);
     }
 }

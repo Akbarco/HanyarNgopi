@@ -12,6 +12,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -33,6 +34,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -48,6 +50,9 @@ public class DebtController implements Initializable {
     @FXML private Button btnTabPiutang;
     @FXML private VBox containerDaftar;
     @FXML private ScrollPane scrollDaftar;
+    @FXML private TextField txtSearchDebt;
+    @FXML private ComboBox<String> cmbFilterStatus;
+    @FXML private ComboBox<String> cmbSortNominal;
 
     private final DebtDAO debtDAO = new DebtDAO();
     private final Locale localeId = new Locale("id", "ID");
@@ -59,6 +64,19 @@ public class DebtController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        if (txtSearchDebt != null) {
+            txtSearchDebt.textProperty().addListener((obs, oldValue, newValue) -> refreshListSection());
+        }
+        if (cmbFilterStatus != null) {
+            cmbFilterStatus.getItems().setAll("Semua status", "Belum Lunas", "Lunas");
+            cmbFilterStatus.setValue("Semua status");
+            cmbFilterStatus.valueProperty().addListener((obs, oldValue, newValue) -> refreshListSection());
+        }
+        if (cmbSortNominal != null) {
+            cmbSortNominal.getItems().setAll("Urutan default", "Nominal tertinggi", "Nominal terendah");
+            cmbSortNominal.setValue("Urutan default");
+            cmbSortNominal.valueProperty().addListener((obs, oldValue, newValue) -> refreshListSection());
+        }
         refreshData();
     }
 
@@ -84,6 +102,14 @@ public class DebtController implements Initializable {
         showDebtDialog("piutang");
     }
 
+    @FXML
+    public void handleResetFilter() {
+        if (txtSearchDebt != null) txtSearchDebt.clear();
+        if (cmbFilterStatus != null) cmbFilterStatus.setValue("Semua status");
+        if (cmbSortNominal != null) cmbSortNominal.setValue("Urutan default");
+        refreshListSection();
+    }
+
     private void refreshData() {
         hutangList = debtDAO.findAllByType("hutang");
         piutangList = debtDAO.findAllByType("piutang");
@@ -103,7 +129,7 @@ public class DebtController implements Initializable {
     private void refreshListSection() {
         styleTabButtons();
 
-        List<Debt> activeList = getActiveList();
+        List<Debt> activeList = getFilteredActiveList();
         String activeLabel = capitalize(activeType);
         lblSectionTitle.setText("Daftar " + activeLabel);
 
@@ -129,6 +155,50 @@ public class DebtController implements Initializable {
 
     private List<Debt> getActiveList() {
         return "hutang".equals(activeType) ? hutangList : piutangList;
+    }
+
+    private List<Debt> getFilteredActiveList() {
+        List<Debt> source = getActiveList();
+        String keyword = txtSearchDebt == null ? "" : txtSearchDebt.getText();
+        String query = keyword == null ? "" : keyword.trim().toLowerCase(localeId);
+        String status = cmbFilterStatus == null ? "Semua status" : cmbFilterStatus.getValue();
+
+        return source.stream()
+                .filter(debt -> matchesSearch(debt, query))
+                .filter(debt -> matchesStatus(debt, status))
+                .sorted(debtComparator())
+                .toList();
+    }
+
+    private Comparator<Debt> debtComparator() {
+        String sort = cmbSortNominal == null ? "Urutan default" : cmbSortNominal.getValue();
+        if ("Nominal tertinggi".equals(sort)) {
+            return Comparator.comparingDouble(Debt::getNominal).reversed();
+        }
+        if ("Nominal terendah".equals(sort)) {
+            return Comparator.comparingDouble(Debt::getNominal);
+        }
+        return Comparator.comparing(Debt::getTanggal).reversed()
+                .thenComparing(Debt::getNama, String.CASE_INSENSITIVE_ORDER);
+    }
+
+    private boolean matchesSearch(Debt debt, String query) {
+        if (query.isBlank()) {
+            return true;
+        }
+        return contains(debt.getNama(), query)
+                || contains(debt.getTipe(), query)
+                || contains(debt.getStatus(), query)
+                || contains(debt.getKeterangan(), query)
+                || contains(debt.getTanggal().format(dateFormatter), query)
+                || contains(formatCurrency(debt.getNominal()), query);
+    }
+
+    private boolean matchesStatus(Debt debt, String status) {
+        if (status == null || "Semua status".equals(status)) {
+            return true;
+        }
+        return "Belum Lunas".equals(status) ? debt.isBelumLunas() : !debt.isBelumLunas();
     }
 
     private VBox buildEmptyState(String activeLabel) {
@@ -195,8 +265,9 @@ public class DebtController implements Initializable {
         HBox badgeBox = new HBox(badge);
         badgeBox.setAlignment(Pos.CENTER_LEFT);
 
-        HBox actionBox = new HBox(10);
+        HBox actionBox = new HBox(8);
         actionBox.setAlignment(Pos.CENTER_RIGHT);
+        actionBox.setMinWidth(210);
 
         if (debt.isBelumLunas()) {
             Button btnPaid = new Button("Tandai Lunas");
@@ -206,12 +277,14 @@ public class DebtController implements Initializable {
                             "-fx-border-color: #D1D5DB;" +
                             "-fx-border-radius: 10;" +
                             "-fx-background-radius: 10;" +
-                            "-fx-font-size: 12;" +
+                            "-fx-font-size: 14;" +
                             "-fx-font-weight: bold;" +
                             "-fx-cursor: hand;" +
                             "-fx-pref-height: 38;" +
-                            "-fx-padding: 0 16 0 16;"
+                            "-fx-padding: 0 14 0 14;"
             );
+            btnPaid.setMinWidth(126);
+            btnPaid.setPrefWidth(132);
             btnPaid.setOnAction(event -> handleMarkAsPaid(debt));
             actionBox.getChildren().add(btnPaid);
         }
@@ -220,10 +293,12 @@ public class DebtController implements Initializable {
         btnDelete.setStyle(
                 "-fx-background-color: transparent;" +
                         "-fx-text-fill: #EF4444;" +
-                        "-fx-font-size: 12;" +
+                        "-fx-font-size: 14;" +
                         "-fx-font-weight: bold;" +
                         "-fx-cursor: hand;"
         );
+        btnDelete.setMinWidth(62);
+        btnDelete.setPrefWidth(66);
         btnDelete.setOnAction(event -> handleDelete(debt));
         actionBox.getChildren().add(btnDelete);
 
@@ -246,12 +321,12 @@ public class DebtController implements Initializable {
         row.setPadding(new Insets(18, 12, 18, 12));
         row.setMaxWidth(Double.MAX_VALUE);
 
-        ColumnConstraints c1 = percentColumn(17);
+        ColumnConstraints c1 = percentColumn(16);
         ColumnConstraints c2 = percentColumn(14);
-        ColumnConstraints c3 = percentColumn(13);
-        ColumnConstraints c4 = percentColumn(25);
-        ColumnConstraints c5 = percentColumn(13);
-        ColumnConstraints c6 = percentColumn(18);
+        ColumnConstraints c3 = percentColumn(12);
+        ColumnConstraints c4 = percentColumn(22);
+        ColumnConstraints c5 = percentColumn(12);
+        ColumnConstraints c6 = percentColumn(24);
         row.getColumnConstraints().addAll(c1, c2, c3, c4, c5, c6);
 
         return row;
@@ -267,7 +342,7 @@ public class DebtController implements Initializable {
     private Label createHeaderLabel(String text) {
         Label label = new Label(text);
         label.setStyle(
-                "-fx-font-size: 12;" +
+                "-fx-font-size: 16;" +
                         "-fx-font-weight: bold;" +
                         "-fx-text-fill: #6B7280;"
         );
@@ -278,7 +353,7 @@ public class DebtController implements Initializable {
         Label label = new Label(text);
         label.setMaxWidth(Double.MAX_VALUE);
         label.setStyle(
-                "-fx-font-size: 13;" +
+                "-fx-font-size: 16;" +
                         "-fx-font-weight: " + (bold ? "bold" : "normal") + ";" +
                         "-fx-text-fill: #111827;"
         );
@@ -290,7 +365,7 @@ public class DebtController implements Initializable {
         badge.setStyle(
                 "-fx-background-radius: 999;" +
                         "-fx-padding: 6 14 6 14;" +
-                        "-fx-font-size: 11;" +
+                        "-fx-font-size: 12;" +
                         "-fx-font-weight: bold;"
         );
 
@@ -460,7 +535,7 @@ public class DebtController implements Initializable {
     private DatePicker createDatePicker() {
         DatePicker datePicker = new DatePicker();
         datePicker.setMaxWidth(Double.MAX_VALUE);
-        datePicker.getStyleClass().add("date-input");
+        datePicker.getStyleClass().add("dialog-date-input");
         datePicker.setConverter(new StringConverter<>() {
             @Override
             public String toString(LocalDate date) {
@@ -515,6 +590,14 @@ public class DebtController implements Initializable {
         String cleaned = normalizeLeadingZeros(extractDigits(value));
         if (cleaned.isBlank()) {
             throw new NumberFormatException();
+        }
+        return Double.parseDouble(cleaned);
+    }
+
+    private double parseOptionalNominal(String value, double fallback) {
+        String cleaned = normalizeLeadingZeros(extractDigits(value));
+        if (cleaned.isBlank()) {
+            return fallback;
         }
         return Double.parseDouble(cleaned);
     }
@@ -590,5 +673,9 @@ public class DebtController implements Initializable {
             return value;
         }
         return value.substring(0, 1).toUpperCase(localeId) + value.substring(1);
+    }
+
+    private boolean contains(String source, String query) {
+        return source != null && source.toLowerCase(localeId).contains(query);
     }
 }

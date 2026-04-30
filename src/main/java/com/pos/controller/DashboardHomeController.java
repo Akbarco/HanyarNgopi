@@ -6,6 +6,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -34,13 +37,22 @@ public class DashboardHomeController implements Initializable {
     @FXML private VBox containerStokWarning;
     @FXML private VBox containerTransaksiBaru;
 
-    private final Locale localeId = new Locale("id", "ID");
     private final DateTimeFormatter dateFormatter =
             DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm", new Locale("id", "ID"));
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         loadStats();
+    }
+
+    @FXML
+    public void handleOpenStock() {
+        navigateBySidebarText("Stok");
+    }
+
+    @FXML
+    public void handleOpenTransaksi() {
+        navigateBySidebarText("Transaksi");
     }
 
     private void loadStats() {
@@ -298,6 +310,34 @@ public class DashboardHomeController implements Initializable {
         if (label != null) {
             label.setText(text);
         }
+    }
+
+    private void navigateBySidebarText(String text) {
+        if (containerTransaksiBaru == null || containerTransaksiBaru.getScene() == null) {
+            return;
+        }
+
+        Button target = findButtonByText(containerTransaksiBaru.getScene().getRoot(), text);
+        if (target != null) {
+            target.fire();
+        }
+    }
+
+    private Button findButtonByText(Node node, String text) {
+        if (node instanceof Button button && text.equals(button.getText())) {
+            return button;
+        }
+
+        if (node instanceof Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                Button result = findButtonByText(child, text);
+                if (result != null) {
+                    return result;
+                }
+            }
+        }
+
+        return null;
     }
 
     private LocalDateTime readDateTime(ResultSet rs, String column) throws SQLException {

@@ -7,6 +7,8 @@ import com.pos.util.CurrencyFormatUtil;
 import com.pos.util.ToastUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -19,6 +21,7 @@ import javafx.stage.Stage;
 
 import java.net.URL;
 import java.text.NumberFormat;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -33,16 +36,45 @@ public class MenuController implements Initializable {
     @FXML private Label lblPlaceholder;
     @FXML private Button btnTabAktif;
     @FXML private Button btnTabArsip;
+    @FXML private TextField txtSearchMenu;
+    @FXML private ComboBox<String> cmbFilterKategori;
+    @FXML private ComboBox<String> cmbSortHarga;
 
     private final MenuDAO menuDAO = new MenuDAO();
     private final ObservableList<Menu> menuList = FXCollections.observableArrayList();
+    private final FilteredList<Menu> filteredMenuList = new FilteredList<>(menuList, menu -> true);
+    private final SortedList<Menu> sortedMenuList = new SortedList<>(filteredMenuList);
     private final Locale localeId = new Locale("id", "ID");
     private boolean activeView = true;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setupColumns();
+        setupSearch();
         loadData();
+    }
+
+    private void setupSearch() {
+        if (tableMenu != null) {
+            tableMenu.setItems(sortedMenuList);
+        }
+        if (txtSearchMenu != null) {
+            txtSearchMenu.textProperty().addListener((obs, oldValue, newValue) -> applySearchFilter());
+        }
+        if (cmbFilterKategori != null) {
+            cmbFilterKategori.setItems(FXCollections.observableArrayList(
+                    "Semua kategori", "makanan", "minuman", "snack"
+            ));
+            cmbFilterKategori.setValue("Semua kategori");
+            cmbFilterKategori.valueProperty().addListener((obs, oldValue, newValue) -> applySearchFilter());
+        }
+        if (cmbSortHarga != null) {
+            cmbSortHarga.setItems(FXCollections.observableArrayList(
+                    "Urutan default", "Harga tertinggi", "Harga terendah"
+            ));
+            cmbSortHarga.setValue("Urutan default");
+            cmbSortHarga.valueProperty().addListener((obs, oldValue, newValue) -> applySearchFilter());
+        }
     }
 
     private void setupColumns() {
@@ -82,7 +114,7 @@ public class MenuController implements Initializable {
                     setStyle("");
                 } else {
                     setText("Rp " + formatPlainCurrency(item));
-                    setStyle("-fx-text-fill: #16A34A; -fx-font-weight: bold;");
+                    setStyle("-fx-text-fill: #16A34A; -fx-font-weight: bold; -fx-font-size: 16;");
                 }
             }
         });
@@ -108,8 +140,8 @@ public class MenuController implements Initializable {
                         "-fx-background-color: " + bg + ";" +
                                 "-fx-text-fill: " + fg + ";" +
                                 "-fx-background-radius: 20;" +
-                                "-fx-padding: 4 14 4 14;" +
-                                "-fx-font-size: 11;" +
+                                "-fx-padding: 6 16 6 16;" +
+                                "-fx-font-size: 13;" +
                                 "-fx-font-weight: bold;"
                 );
                 setGraphic(badge);
@@ -186,8 +218,39 @@ public class MenuController implements Initializable {
 
     private void loadData() {
         menuList.setAll(activeView ? menuDAO.findByActive(true) : menuDAO.findArchived());
-        tableMenu.setItems(menuList);
+        applySearchFilter();
         updateMenuTabs();
+    }
+
+    private void applySearchFilter() {
+        String keyword = txtSearchMenu == null ? "" : txtSearchMenu.getText();
+        String query = keyword == null ? "" : keyword.trim().toLowerCase(localeId);
+        String kategori = cmbFilterKategori == null ? "Semua kategori" : cmbFilterKategori.getValue();
+
+        filteredMenuList.setPredicate(menu -> {
+            boolean matchesSearch = query.isBlank()
+                    || contains(menu.getNamaMenu(), query)
+                    || contains(menu.getKategori(), query)
+                    || contains(formatPlainCurrency(menu.getHarga()), query)
+                    || contains(formatCurrencyForSearch(menu.getHarga()), query);
+            boolean matchesCategory = kategori == null
+                    || "Semua kategori".equals(kategori)
+                    || kategori.equalsIgnoreCase(menu.getKategori());
+            return matchesSearch && matchesCategory;
+        });
+        applySort();
+    }
+
+    private void applySort() {
+        String sort = cmbSortHarga == null ? "Urutan default" : cmbSortHarga.getValue();
+        if ("Harga tertinggi".equals(sort)) {
+            sortedMenuList.setComparator(Comparator.comparingDouble(Menu::getHarga).reversed());
+        } else if ("Harga terendah".equals(sort)) {
+            sortedMenuList.setComparator(Comparator.comparingDouble(Menu::getHarga));
+        } else {
+            sortedMenuList.setComparator(Comparator.comparing(Menu::getKategori, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(Menu::getNamaMenu, String.CASE_INSENSITIVE_ORDER));
+        }
     }
 
     @FXML
@@ -205,6 +268,14 @@ public class MenuController implements Initializable {
     public void openTabArsip() {
         activeView = false;
         loadData();
+    }
+
+    @FXML
+    public void handleResetFilter() {
+        if (txtSearchMenu != null) txtSearchMenu.clear();
+        if (cmbFilterKategori != null) cmbFilterKategori.setValue("Semua kategori");
+        if (cmbSortHarga != null) cmbSortHarga.setValue("Urutan default");
+        applySearchFilter();
     }
 
     private void updateMenuTabs() {
@@ -247,7 +318,7 @@ public class MenuController implements Initializable {
 
         VBox root = buildDialogLayout(
                 "Tambah Menu Baru", txtNama, cmbKategori, txtHarga, btnBatal, btnSimpan);
-        dialog.setScene(new Scene(root, 460, 380));
+        dialog.setScene(createDialogScene(root, 520, 430));
         dialog.showAndWait();
     }
 
@@ -276,7 +347,7 @@ public class MenuController implements Initializable {
 
         VBox root = buildDialogLayout(
                 "Edit Menu", txtNama, cmbKategori, txtHarga, btnBatal, btnSimpan);
-        dialog.setScene(new Scene(root, 460, 380));
+        dialog.setScene(createDialogScene(root, 520, 430));
         dialog.showAndWait();
     }
 
@@ -329,7 +400,7 @@ public class MenuController implements Initializable {
     private TextField createTextField(String prompt) {
         TextField tf = new TextField();
         tf.setPromptText(prompt);
-        tf.setStyle(inputStyle());
+        tf.getStyleClass().add("text-input");
         return tf;
     }
 
@@ -338,16 +409,14 @@ public class MenuController implements Initializable {
         cmb.setItems(FXCollections.observableArrayList("makanan", "minuman", "snack"));
         cmb.setPromptText("Pilih kategori");
         cmb.setMaxWidth(Double.MAX_VALUE);
-        cmb.setStyle(inputStyle());
+        cmb.getStyleClass().add("combo-input");
         return cmb;
     }
 
     private Button createBtnBatal(Stage dialog) {
         Button btn = new Button("Batal");
-        btn.setStyle(
-                "-fx-background-color: #F3F4F6; -fx-text-fill: #374151;" +
-                        "-fx-background-radius: 8; -fx-cursor: hand;" +
-                        "-fx-pref-height: 40; -fx-pref-width: 100;");
+        btn.getStyleClass().add("secondary-button");
+        btn.setPrefWidth(118);
         btn.setOnAction(e -> dialog.close());
         return btn;
     }
@@ -355,16 +424,16 @@ public class MenuController implements Initializable {
     private VBox buildDialogLayout(String title, TextField txtNama,
                                    ComboBox<String> cmbKategori, TextField txtHarga,
                                    Button btnBatal, Button btnSimpan) {
-        VBox root = new VBox(12);
-        root.setPadding(new Insets(24));
-        root.setStyle("-fx-background-color: white;");
+        VBox root = new VBox(16);
+        root.setPadding(new Insets(32));
+        root.getStyleClass().add("dialog-root");
 
         Label lblTitle = new Label(title);
-        lblTitle.setStyle(
-                "-fx-font-size: 18; -fx-font-weight: bold; -fx-text-fill: #1A1A2E;");
+        lblTitle.getStyleClass().add("dialog-title");
 
         HBox btnBox = new HBox(10, btnBatal, btnSimpan);
         btnBox.setAlignment(Pos.CENTER_RIGHT);
+        btnBox.setPadding(new Insets(10, 0, 0, 0));
 
         root.getChildren().addAll(
                 lblTitle,
@@ -378,9 +447,14 @@ public class MenuController implements Initializable {
 
     private Label fieldLabel(String text) {
         Label lbl = new Label(text);
-        lbl.setStyle(
-                "-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #1A1A2E;");
+        lbl.getStyleClass().add("form-label");
         return lbl;
+    }
+
+    private Scene createDialogScene(VBox root, double width, double height) {
+        Scene scene = new Scene(root, width, height);
+        scene.getStylesheets().add(getClass().getResource("/com/pos/view/css/menu.css").toExternalForm());
+        return scene;
     }
 
     private String inputStyle() {
@@ -391,8 +465,8 @@ public class MenuController implements Initializable {
 
     private String btnPrimaryStyle() {
         return "-fx-background-color: linear-gradient(to right, #5B4BFF, #4F46E5); -fx-text-fill: white;" +
-                "-fx-background-radius: 8; -fx-cursor: hand;" +
-                "-fx-pref-height: 40; -fx-pref-width: 100;";
+                "-fx-background-radius: 12; -fx-cursor: hand;" +
+                "-fx-pref-height: 48; -fx-pref-width: 118; -fx-font-weight: bold;";
     }
 
     private void configureCurrencyField(TextField field) {
@@ -431,6 +505,14 @@ public class MenuController implements Initializable {
         return Double.parseDouble(normalizeLeadingZeros(digits));
     }
 
+    private double parseOptionalCurrency(String value, double fallback) {
+        String digits = extractDigits(value);
+        if (digits.isBlank()) {
+            return fallback;
+        }
+        return Double.parseDouble(normalizeLeadingZeros(digits));
+    }
+
     private String extractDigits(String value) {
         return value == null ? "" : value.replaceAll("[^0-9]", "");
     }
@@ -451,6 +533,14 @@ public class MenuController implements Initializable {
 
     private String formatPlainCurrency(double value) {
         return formatDigits(String.valueOf((long) value));
+    }
+
+    private String formatCurrencyForSearch(double value) {
+        return ("Rp " + formatPlainCurrency(value)).toLowerCase(localeId);
+    }
+
+    private boolean contains(String source, String query) {
+        return source != null && source.toLowerCase(localeId).contains(query);
     }
 
     private String capitalize(String s) {

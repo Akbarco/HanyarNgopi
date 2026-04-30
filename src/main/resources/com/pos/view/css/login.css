@@ -1,82 +1,145 @@
 .root-pane {
-    -fx-background-color: linear-gradient(to bottom right, #EEF2FF 0%, #F8FAFC 58%, #F5F3FF 100%);
+    -fx-background-color: linear-gradient(to bottom right, #FBF7F2 0%, #FFFDFC 46%, #F2E9DF 100%);
     -fx-alignment: center;
-    -fx-padding: 32;
+    -fx-padding: 30;
 }
 
-.login-card {
+.login-shell {
     -fx-background-color: white;
     -fx-background-radius: 24;
-    -fx-border-color: rgba(79,70,229,0.12);
+    -fx-border-color: rgba(60, 55, 90, 0.08);
     -fx-border-radius: 24;
-    -fx-effect: dropshadow(gaussian, rgba(79,70,229,0.14), 30, 0, 0, 8);
+    -fx-effect: dropshadow(gaussian, rgba(45, 34, 24, 0.15), 36, 0, 0, 14);
+    -fx-min-width: 800;
+    -fx-pref-width: 920;
+    -fx-max-width: 920;
+    -fx-pref-height: 690;
+    -fx-max-height: 690;
+}
+
+.brand-panel {
+    -fx-background-color: linear-gradient(to bottom right, #5B4BFA 0%, #4335E8 52%, #2F26B8 100%);
+    -fx-background-radius: 24 0 0 24;
     -fx-min-width: 360;
-    -fx-max-width: 560;
-    -fx-pref-width: 520;
+    -fx-pref-width: 380;
+    -fx-max-width: 390;
+    -fx-padding: 48 38 48 38;
 }
 
-.logo-shell {
-    -fx-background-color: #EEF2FF;
+.brand-content {
+    -fx-padding: 24 0 24 0;
+}
+
+.brand-logo-shell {
+    -fx-background-color: white;
     -fx-background-radius: 999;
-    -fx-padding: 18;
-    -fx-border-color: rgba(79,70,229,0.16);
+    -fx-padding: 8;
+    -fx-min-width: 148;
+    -fx-min-height: 148;
+    -fx-pref-width: 148;
+    -fx-pref-height: 148;
+    -fx-max-width: 148;
+    -fx-max-height: 148;
+    -fx-border-color: rgba(255, 255, 255, 0.70);
     -fx-border-radius: 999;
-    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.10), 18, 0, 0, 4);
+    -fx-border-width: 3;
+    -fx-effect: dropshadow(gaussian, rgba(15, 10, 60, 0.30), 26, 0, 0, 9);
 }
 
-.title {
-    -fx-font-size: 30;
+.brand-title {
+    -fx-font-size: 32;
     -fx-font-weight: bold;
-    -fx-text-fill: #111827;
+    -fx-text-fill: white;
 }
 
-.subtitle {
+.brand-subtitle {
     -fx-font-size: 14;
-    -fx-text-fill: #64748B;
+    -fx-text-fill: rgba(255, 255, 255, 0.90);
+}
+
+.brand-copy {
+    -fx-font-size: 14;
+    -fx-text-fill: rgba(255, 255, 255, 0.88);
     -fx-text-alignment: center;
-    -fx-max-width: 360;
+    -fx-alignment: center;
+    -fx-max-width: 270;
+    -fx-line-spacing: 4;
+}
+
+.form-panel {
+    -fx-background-color: white;
+    -fx-background-radius: 0 24 24 0;
+    -fx-padding: 56 72 56 72;
+}
+
+.form-inner {
+    -fx-max-width: 390;
+    -fx-pref-width: 390;
+}
+
+.welcome-logo-shell {
+    -fx-background-color: white;
+    -fx-background-radius: 16;
+    -fx-border-color: #E7E9F2;
+    -fx-border-radius: 16;
+    -fx-padding: 10;
+    -fx-effect: dropshadow(gaussian, rgba(28, 35, 70, 0.10), 18, 0, 0, 6);
+}
+
+.welcome-title {
+    -fx-font-size: 22;
+    -fx-font-weight: bold;
+    -fx-text-fill: #30354D;
+}
+
+.welcome-subtitle {
+    -fx-font-size: 13;
+    -fx-text-fill: #7F8698;
 }
 
 .field-label {
-    -fx-font-size: 13;
+    -fx-font-size: 12;
     -fx-font-weight: bold;
-    -fx-text-fill: #111827;
+    -fx-text-fill: #30354D;
 }
 
 .input-field {
-    -fx-background-color: #F3F4F6;
+    -fx-background-color: white;
     -fx-background-radius: 12;
-    -fx-border-color: transparent;
+    -fx-border-color: #E1E4ED;
     -fx-border-radius: 12;
+    -fx-border-width: 1;
     -fx-pref-height: 46;
     -fx-font-size: 13;
-    -fx-text-fill: #374151;
-    -fx-prompt-text-fill: #94A3B8;
-    -fx-padding: 0 14 0 14;
+    -fx-text-fill: #30354D;
+    -fx-prompt-text-fill: #A2A8B8;
+    -fx-padding: 0 16 0 16;
 }
 
 .input-field:focused {
-    -fx-background-color: #F8FAFC;
-    -fx-border-color: #4F46E5;
-    -fx-border-width: 1.5;
+    -fx-background-color: white;
+    -fx-border-color: #5B4BFA;
+    -fx-border-width: 1.4;
     -fx-background-radius: 12;
     -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(91, 75, 250, 0.15), 14, 0, 0, 4);
 }
 
 .btn-login {
-    -fx-background-color: #0F172A;
+    -fx-background-color: linear-gradient(to right, #5B4BFA, #4434E8);
     -fx-text-fill: white;
     -fx-font-size: 14;
     -fx-font-weight: bold;
     -fx-background-radius: 12;
-    -fx-pref-height: 48;
+    -fx-pref-height: 50;
     -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(91, 75, 250, 0.30), 18, 0, 0, 8);
 }
 
 .btn-login:hover {
-    -fx-background-color: #111827;
+    -fx-background-color: linear-gradient(to right, #4D3EF0, #3528D5);
 }
 
 .btn-login:pressed {
-    -fx-background-color: #1E293B;
+    -fx-background-color: #3326C9;
 }
