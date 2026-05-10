@@ -1,5 +1,9 @@
 package com.pos.model;
 
+/**
+ * Model item detail dalam satu transaksi.
+ * Setiap baris mewakili menu yang dibeli, jumlah, subtotal, dan metode pembayaran.
+ */
 public class TransaksiDetail {
     private int idDetail;
     private int idTransaksi;

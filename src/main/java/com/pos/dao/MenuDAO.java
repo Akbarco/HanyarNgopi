@@ -10,16 +10,29 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DAO menu.
+ * Menghubungkan fitur Kelola Menu, Kasir, Stok, dan laporan dengan tabel menus.
+ */
 public class MenuDAO {
 
+    /**
+     * Mengambil semua menu aktif untuk kebutuhan lama/kompatibilitas.
+     */
     public List<Menu> findAll() {
         return findByActive(true);
     }
 
+    /**
+     * Mengambil daftar menu yang diarsipkan.
+     */
     public List<Menu> findArchived() {
         return findByActive(false);
     }
 
+    /**
+     * Mengambil menu berdasarkan status aktif atau arsip.
+     */
     public List<Menu> findByActive(boolean active) {
         List<Menu> list = new ArrayList<>();
         String sql = """
@@ -44,6 +57,9 @@ public class MenuDAO {
         return list;
     }
 
+    /**
+     * Mengambil menu aktif yang punya stok tersedia untuk dipilih di kasir.
+     */
     public List<Menu> findAvailableForTransaction() {
         List<Menu> list = new ArrayList<>();
         String sql = """
@@ -70,6 +86,9 @@ public class MenuDAO {
         return list;
     }
 
+    /**
+     * Menyimpan menu baru ke database.
+     */
     public void insert(Menu menu) {
         String sql = "INSERT INTO menus (nama_menu, harga, kategori, is_active) VALUES (?, ?, ?, ?)";
         Connection conn = koneksi.getConnection();
@@ -88,6 +107,9 @@ public class MenuDAO {
         }
     }
 
+    /**
+     * Memperbarui data menu seperti nama, kategori, harga, dan status aktif.
+     */
     public void update(Menu menu) {
         String sql = "UPDATE menus SET nama_menu=?, harga=?, kategori=?, is_active=? WHERE id_menu=?";
         Connection conn = koneksi.getConnection();
@@ -107,14 +129,23 @@ public class MenuDAO {
         }
     }
 
+    /**
+     * Mengarsipkan menu tanpa menghapus riwayat transaksi lama.
+     */
     public void archive(int idMenu) {
         updateActiveState(idMenu, false);
     }
 
+    /**
+     * Mengaktifkan kembali menu yang sebelumnya diarsipkan.
+     */
     public void activate(int idMenu) {
         updateActiveState(idMenu, true);
     }
 
+    /**
+     * Mengubah status aktif menu di tabel menus.
+     */
     private void updateActiveState(int idMenu, boolean active) {
         String sql = "UPDATE menus SET is_active = ? WHERE id_menu = ?";
         Connection conn = koneksi.getConnection();
@@ -131,6 +162,9 @@ public class MenuDAO {
         }
     }
 
+    /**
+     * Menghapus menu secara permanen jika memang masih aman untuk dihapus.
+     */
     public String delete(int idMenu) {
         String sql = "DELETE FROM menus WHERE id_menu=?";
         Connection conn = koneksi.getConnection();
@@ -152,6 +186,9 @@ public class MenuDAO {
         }
     }
 
+    /**
+     * Mengubah satu baris hasil query menjadi objek Menu.
+     */
     private Menu mapRow(ResultSet rs) throws SQLException {
         Menu menu = new Menu();
         menu.setIdMenu(rs.getInt("id_menu"));

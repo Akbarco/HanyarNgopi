@@ -47,6 +47,13 @@ import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
 
+/**
+ * Controller halaman Laporan.
+ *
+ * Layar ini menggabungkan data dari beberapa tabel SQLite untuk kebutuhan arsip
+ * dan evaluasi usaha: penjualan, stok, hutang/piutang, backup database,
+ * export Excel, dan export PDF.
+ */
 public class LaporanController implements Initializable {
 
     @FXML private DatePicker dpMulai;
@@ -87,6 +94,7 @@ public class LaporanController implements Initializable {
     private String activeTab = "penjualan";
     private boolean syncingDateControls;
 
+    /** Menyiapkan periode default bulan berjalan lalu memuat seluruh panel laporan. */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         configureDatePicker(dpMulai);
@@ -101,24 +109,28 @@ public class LaporanController implements Initializable {
     }
 
     @FXML
+    /** Mengaktifkan tab laporan penjualan. */
     private void showPenjualan() {
         activeTab = "penjualan";
         refreshAll();
     }
 
     @FXML
+    /** Mengaktifkan tab laporan stok. */
     private void showStok() {
         activeTab = "stok";
         refreshAll();
     }
 
     @FXML
+    /** Mengaktifkan tab laporan hutang dan piutang. */
     private void showHutang() {
         activeTab = "hutang";
         refreshAll();
     }
 
     @FXML
+    /** Menyalin file database SQLite menjadi file backup pilihan user. */
     private void handleBackupData() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Simpan Backup Database");
@@ -149,6 +161,7 @@ public class LaporanController implements Initializable {
     }
 
     @FXML
+    /** Mengambil seluruh data laporan lalu menulis file Excel .xlsx. */
     private void handleExportExcel() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Export Laporan Excel");
@@ -180,6 +193,7 @@ public class LaporanController implements Initializable {
     }
 
     @FXML
+    /** Mengambil seluruh data laporan lalu menulis file PDF sederhana. */
     private void handleExportPdf() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Export Laporan PDF");
@@ -210,6 +224,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Menyegarkan periode, tab aktif, serta semua panel laporan. */
     private void refreshAll() {
         DateRange range = syncDateRange();
         updatePeriodLabel(range);
@@ -219,6 +234,7 @@ public class LaporanController implements Initializable {
         loadHutangReport(range);
     }
 
+    /** Mengatur format input tanggal agar tampil dan terbaca sebagai dd/MM/yyyy. */
     private void configureDatePicker(DatePicker datePicker) {
         datePicker.setConverter(new StringConverter<>() {
             @Override
@@ -252,6 +268,7 @@ public class LaporanController implements Initializable {
         });
     }
 
+    /** Menyimpan teks tanggal yang diketik manual ke nilai DatePicker. */
     private void commitDatePicker(DatePicker datePicker) {
         String text = datePicker.getEditor().getText();
         LocalDate parsed = datePicker.getConverter().fromString(text);
@@ -275,10 +292,12 @@ public class LaporanController implements Initializable {
         datePicker.getEditor().setText(datePicker.getConverter().toString(datePicker.getValue()));
     }
 
+    /** Menyamakan nilai date picker dengan range laporan yang valid. */
     private DateRange syncDateRange() {
         return normalizeDates();
     }
 
+    /** Memastikan tanggal mulai/akhir tidak kosong dan akhir tidak sebelum mulai. */
     private DateRange normalizeDates() {
         LocalDate mulai = dpMulai.getValue();
         LocalDate akhir = dpAkhir.getValue();
@@ -305,11 +324,13 @@ public class LaporanController implements Initializable {
         return new DateRange(mulai, akhir);
     }
 
+    /** Menampilkan periode laporan di header. */
     private void updatePeriodLabel(DateRange range) {
         lblPeriode.setText(range.start().format(periodFormatter) + " - " +
                 range.end().format(periodFormatter));
     }
 
+    /** Mengatur panel mana yang terlihat sesuai tab aktif. */
     private void updateActivePanel() {
         setVisible(panelPenjualan, "penjualan".equals(activeTab));
         setVisible(panelStok, "stok".equals(activeTab));
@@ -335,6 +356,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Memuat ringkasan penjualan, penjualan per menu, dan detail transaksi. */
     private void loadPenjualanReport(DateRange range) {
         clear(containerPenjualanPerMenu);
         clear(containerDetailTransaksi);
@@ -358,6 +380,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Query total penjualan dan jumlah transaksi dari tabel transactions. */
     private void loadPenjualanSummary(Connection conn, DateRange range) throws SQLException {
         String sql = """
                 SELECT COALESCE(SUM(total), 0) AS total_penjualan,
@@ -375,6 +398,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Query kontribusi penjualan setiap menu dari transaction_detail dan menus. */
     private void loadPenjualanPerMenu(Connection conn, DateRange range) throws SQLException {
         String sql = """
                 SELECT COALESCE(td.nama_menu_snapshot, m.nama_menu) AS nama_menu,
@@ -406,6 +430,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Query transaksi terbaru dalam periode laporan. */
     private void loadDetailTransaksi(Connection conn, DateRange range) throws SQLException {
         String sql = """
                 SELECT t.id_transaksi,
@@ -438,6 +463,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Memuat laporan stok aman, stok perlu perhatian, dan detail stok lengkap. */
     private void loadStokReport(DateRange range) {
         clear(containerStokMenipis);
         clear(containerStokAman);
@@ -460,6 +486,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Query kartu stok ringkas: stok aman atau stok yang jumlahnya <= minimum. */
     private void loadStockCards(Connection conn, boolean menipis) throws SQLException {
         String sql = """
                 SELECT m.nama_menu, s.jumlah_stok, s.satuan, s.stok_minimum
@@ -490,6 +517,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Query semua stok aktif untuk tabel detail laporan stok. */
     private void loadStockDetail(Connection conn) throws SQLException {
         String sql = """
                 SELECT m.nama_menu, s.jumlah_stok, s.satuan, s.stok_minimum
@@ -513,7 +541,7 @@ public class LaporanController implements Initializable {
                         rs.getString("satuan"),
                         jumlah,
                         minimum,
-                        jumlah <= minimum ? "Menipis" : "Aman"
+                        jumlah <= 0 ? "Habis" : jumlah <= minimum ? "Menipis" : "Aman"
                 ));
             }
 
@@ -524,6 +552,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Memuat ringkasan hutang/piutang dan daftar belum lunas pada periode aktif. */
     private void loadHutangReport(DateRange range) {
         clear(containerHutangBelum);
         clear(containerPiutangBelum);
@@ -552,6 +581,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Menjumlahkan nominal hutang/piutang berdasarkan tipe dan status. */
     private double sumDebt(Connection conn, String tipe, String status, DateRange range) throws SQLException {
         String sql = """
                 SELECT COALESCE(SUM(nominal), 0)
@@ -570,6 +600,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Menjumlahkan semua nominal hutang/piutang pada tipe tertentu tanpa filter status. */
     private double sumDebtTotal(Connection conn, String tipe, DateRange range) throws SQLException {
         String sql = """
                 SELECT COALESCE(SUM(nominal), 0)
@@ -587,6 +618,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Mengambil daftar hutang/piutang belum lunas untuk panel laporan. */
     private void loadDebtList(Connection conn, String tipe, VBox target, DateRange range) throws SQLException {
         String sql = """
                 SELECT nama, nominal, tanggal, keterangan
@@ -622,11 +654,13 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Menggabungkan CSV penjualan, stok, dan hutang/piutang menjadi data export lengkap. */
     private ReportData buildFullReportData(Connection conn, DateRange range) throws SQLException {
         String period = range.start() + " - " + range.end();
         return new ReportData("Laporan Lengkap", period, parseCsv(buildFullExportCsv(conn, range)));
     }
 
+    /** Membuat isi laporan lengkap dalam format CSV internal sebelum ditulis ke Excel/PDF. */
     private String buildFullExportCsv(Connection conn, DateRange range) throws SQLException {
         StringBuilder csv = new StringBuilder();
         appendReportTitle(csv, "Laporan Lengkap", range);
@@ -642,6 +676,7 @@ public class LaporanController implements Initializable {
         return csv.toString();
     }
 
+    /** Menggabungkan isi CSV tanpa mengulang header periode dari tiap bagian. */
     private void appendCsvContentWithoutHeader(StringBuilder target, String csv) {
         List<String[]> rows = parseCsv(csv);
         int index = 2;
@@ -654,6 +689,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Menulis file .xlsx secara manual memakai struktur ZIP OpenXML sederhana. */
     private void writeExcelReport(Path target, ReportData report) throws IOException {
         List<String[]> rows = report.rows();
         int maxColumns = rows.stream().mapToInt(row -> Math.max(1, row.length)).max().orElse(1);
@@ -695,6 +731,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Membentuk XML worksheet Excel dari baris laporan. */
     private String excelSheetXml(List<String[]> rows, int maxColumns) {
         StringBuilder xml = new StringBuilder();
         List<String> mergedCells = new ArrayList<>();
@@ -752,6 +789,7 @@ public class LaporanController implements Initializable {
         return xml.toString();
     }
 
+    /** Memilih style Excel berdasarkan jenis baris laporan. */
     private int excelStyleForRow(String[] row, int index) {
         if (row.length == 0 || (row.length == 1 && row[0].isBlank())) {
             return 0;
@@ -771,6 +809,7 @@ public class LaporanController implements Initializable {
         return 4;
     }
 
+    /** Menentukan tinggi baris Excel sesuai style visual. */
     private int excelRowHeight(int style) {
         return switch (style) {
             case 1 -> 32;
@@ -781,6 +820,7 @@ public class LaporanController implements Initializable {
         };
     }
 
+    /** Menghitung lebar merge cell untuk judul section pada Excel. */
     private int excelRowSpan(List<String[]> rows, int index, int maxColumns) {
         String[] row = rows.get(index);
         if (index == 0 || index == 1) {
@@ -801,6 +841,7 @@ public class LaporanController implements Initializable {
         return Math.max(1, row.length);
     }
 
+    /** Menentukan teks yang tampil dalam satu cell Excel. */
     private String excelCellDisplay(String[] row, int rowIndex, int columnIndex) {
         if (rowIndex == 1 && columnIndex == 0 && row.length > 1) {
             return "Periode: " + row[1];
@@ -814,6 +855,7 @@ public class LaporanController implements Initializable {
         return formatPdfCell(row, columnIndex);
     }
 
+    /** Mengecek apakah baris CSV adalah header tabel. */
     private boolean isTableHeader(String[] row) {
         if (row.length < 2) {
             return false;
@@ -823,6 +865,7 @@ public class LaporanController implements Initializable {
                 || first.equals("jenis") || first.equals("nama");
     }
 
+    /** Menyediakan XML style Excel untuk warna, border, font, dan alignment. */
     private String excelStylesXml() {
         return """
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -860,6 +903,7 @@ public class LaporanController implements Initializable {
                 """;
     }
 
+    /** Menulis laporan PDF memakai generator PDF kecil yang ada di file ini. */
     private void writePdfReport(Path target, ReportData report) throws IOException {
         PdfDocument pdf = new PdfDocument(loadPdfLogo());
         PageCursor cursor = newPdfPage(pdf, report);
@@ -878,11 +922,13 @@ public class LaporanController implements Initializable {
         Files.write(target, pdf.toBytes());
     }
 
+    /** Membuat halaman PDF baru lalu menggambar header laporan. */
     private PageCursor newPdfPage(PdfDocument pdf, ReportData report) {
         PdfPage page = pdf.newPage();
         return new PageCursor(page, drawPdfHeader(page, report, pdf.logo()));
     }
 
+    /** Menggambar logo, judul, dan periode di bagian atas halaman PDF. */
     private double drawPdfHeader(PdfPage page, ReportData report, PdfLogo logo) {
         page.roundedRect(42, 502, 758, 58, 10, "111827");
         page.rect(42, 496, 758, 5, "4F46E5");
@@ -894,6 +940,7 @@ public class LaporanController implements Initializable {
         return 474;
     }
 
+    /** Mengelompokkan baris laporan menjadi blok ringkasan dan blok tabel untuk PDF. */
     private List<PdfBlock> collectPdfBlocks(List<String[]> rows) {
         List<PdfBlock> blocks = new ArrayList<>();
         List<String[]> summaryRows = new ArrayList<>();
@@ -947,6 +994,7 @@ public class LaporanController implements Initializable {
         return blocks;
     }
 
+    /** Menggambar blok ringkasan pendek di PDF. */
     private PageCursor renderPdfSummaryBlock(PageCursor cursor, PdfBlock block) {
         PdfPage page = cursor.page();
         double y = cursor.y();
@@ -973,6 +1021,7 @@ public class LaporanController implements Initializable {
         return new PageCursor(page, y - cardHeight - 18);
     }
 
+    /** Menggambar blok tabel di PDF dan membuat halaman baru jika ruang habis. */
     private PageCursor renderPdfTableBlock(PdfDocument pdf, ReportData report, PageCursor cursor, PdfBlock block) {
         PdfPage page = cursor.page();
         double y = cursor.y();
@@ -1044,6 +1093,7 @@ public class LaporanController implements Initializable {
         return new PageCursor(page, y);
     }
 
+    /** Menggambar teks tiap kolom pada satu baris PDF. */
     private void drawPdfRowText(PdfPage page, String[] row, double baseline, int columns,
                                 int fontSize, boolean bold, String color) {
         double[] widths = pdfColumnWidths(columns);
@@ -1056,6 +1106,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Mengira tinggi blok PDF supaya pagination tidak memotong tabel. */
     private double estimateRenderedPdfBlockHeight(PdfBlock block) {
         if (block.summary()) {
             int rows = Math.max(1, (int) Math.ceil(block.rows().size() / 2.0));
@@ -1066,6 +1117,7 @@ public class LaporanController implements Initializable {
         return 20 + (block.header() == null ? 0 : 20) + (dataRows * 19) + 12;
     }
 
+    /** Menentukan judul section PDF dari header tabel. */
     private String defaultPdfSectionTitle(String[] header) {
         String first = header.length == 0 ? "" : header[0].toLowerCase(localeId);
         if (first.equals("nama barang")) {
@@ -1080,6 +1132,7 @@ public class LaporanController implements Initializable {
         return "Detail Laporan";
     }
 
+    /** Mengecek baris kosong sebagai pemisah section PDF. */
     private boolean isBlankPdfRow(String[] row) {
         if (row == null || row.length == 0) {
             return true;
@@ -1087,6 +1140,7 @@ public class LaporanController implements Initializable {
         return row.length == 1 && row[0].isBlank();
     }
 
+    /** Membaca logo aplikasi dari resources untuk dimasukkan ke PDF. */
     private PdfLogo loadPdfLogo() {
         try (InputStream stream = getClass().getResourceAsStream("/com/pos/view/image/logo.jpeg")) {
             if (stream == null) {
@@ -1104,6 +1158,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Menentukan lebar kolom PDF berdasarkan jumlah kolom. */
     private double[] pdfColumnWidths(int columnCount) {
         if (columnCount == 2) {
             return new double[]{357, 357};
@@ -1126,6 +1181,7 @@ public class LaporanController implements Initializable {
         return widths;
     }
 
+    /** Memformat isi cell PDF, termasuk nominal angka menjadi Rupiah. */
     private String formatPdfCell(String[] row, int columnIndex) {
         if (columnIndex >= row.length) {
             return "";
@@ -1155,6 +1211,7 @@ public class LaporanController implements Initializable {
         return value;
     }
 
+    /** Mengecek apakah teks berisi angka murni untuk format nominal. */
     private boolean isNumeric(String value) {
         if (value == null || value.isBlank()) {
             return false;
@@ -1167,6 +1224,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Mengubah teks angka menjadi format Rupiah untuk export PDF. */
     private String formatRupiahValue(String value) {
         if (value == null || value.isBlank()) {
             return "Rp 0";
@@ -1180,6 +1238,7 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Mengubah CSV internal menjadi daftar baris/kolom. */
     private List<String[]> parseCsv(String csv) {
         List<String[]> rows = new ArrayList<>();
         for (String line : csv.split("\\R", -1)) {
@@ -1188,6 +1247,7 @@ public class LaporanController implements Initializable {
         return rows;
     }
 
+    /** Membaca satu baris CSV dengan dukungan tanda kutip. */
     private String[] parseCsvLine(String line) {
         List<String> values = new ArrayList<>();
         StringBuilder current = new StringBuilder();
@@ -1216,12 +1276,14 @@ public class LaporanController implements Initializable {
         return values.toArray(String[]::new);
     }
 
+    /** Menambahkan file XML ke dalam paket ZIP .xlsx. */
     private void zipEntry(ZipOutputStream zip, String name, String content) throws IOException {
         zip.putNextEntry(new ZipEntry(name));
         zip.write(content.getBytes(StandardCharsets.UTF_8));
         zip.closeEntry();
     }
 
+    /** Mengubah index kolom menjadi nama kolom Excel seperti A, B, C. */
     private String columnName(int column) {
         StringBuilder name = new StringBuilder();
         while (column > 0) {
@@ -1232,6 +1294,7 @@ public class LaporanController implements Initializable {
         return name.toString();
     }
 
+    /** Escape karakter khusus agar teks aman ditaruh di XML Excel. */
     private String xmlEscape(String value) {
         return value == null ? "" : value
                 .replace("&", "&amp;")
@@ -1240,6 +1303,7 @@ public class LaporanController implements Initializable {
                 .replace("\"", "&quot;");
     }
 
+    /** Memotong teks panjang agar layout PDF tetap rapi. */
     private String truncate(String value, int max) {
         if (value == null) {
             return "";
@@ -1247,20 +1311,26 @@ public class LaporanController implements Initializable {
         return value.length() <= max ? value : value.substring(0, Math.max(0, max - 1)) + "...";
     }
 
+    /** Struktur blok export PDF: judul section, header, isi baris, dan penanda ringkasan. */
     private record PdfBlock(String title, String[] header, List<String[]> rows, boolean summary) {}
 
+    /** Posisi gambar saat proses render PDF berpindah antarhalaman. */
     private record PageCursor(PdfPage page, double y) {}
 
+    /** Data logo yang sudah siap dimasukkan ke PDF. */
     private record PdfLogo(byte[] bytes, int width, int height) {}
 
+    /** Generator dokumen PDF minimal untuk export laporan tanpa library eksternal. */
     private static final class PdfDocument {
         private final List<PdfPage> pages = new ArrayList<>();
         private final PdfLogo logo;
 
+        /** Menyimpan logo opsional yang dipakai di header setiap halaman. */
         private PdfDocument(PdfLogo logo) {
             this.logo = logo;
         }
 
+        /** Membuat halaman PDF baru dengan background laporan. */
         private PdfPage newPage() {
             PdfPage page = new PdfPage();
             page.rect(0, 0, 842, 595, "F8FAFC");
@@ -1268,10 +1338,12 @@ public class LaporanController implements Initializable {
             return page;
         }
 
+        /** Mengembalikan logo yang akan digambar di halaman PDF. */
         private PdfLogo logo() {
             return logo;
         }
 
+        /** Merakit object PDF, xref, dan trailer menjadi byte file .pdf. */
         private byte[] toBytes() throws IOException {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             List<byte[]> objects = new ArrayList<>();
@@ -1358,13 +1430,16 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Representasi satu halaman PDF dan perintah gambar sederhana. */
     private static final class PdfPage {
         private final StringBuilder content = new StringBuilder();
 
+        /** Menggambar teks hitam ke halaman PDF. */
         private void text(double x, double y, String value, int size, boolean bold) {
             text(x, y, value, size, bold, "000000");
         }
 
+        /** Menggambar teks dengan warna tertentu ke halaman PDF. */
         private void text(double x, double y, String value, int size, boolean bold, String color) {
             double[] rgb = rgb(color);
             content.append("BT /").append(bold ? "F2" : "F1").append(' ').append(size)
@@ -1374,6 +1449,7 @@ public class LaporanController implements Initializable {
                     .append(pdfEscape(value)).append(") Tj ET\n");
         }
 
+        /** Menggambar kotak solid untuk background section/table. */
         private void rect(double x, double y, double width, double height, String color) {
             double[] rgb = rgb(color);
             content.append(format(rgb[0])).append(' ').append(format(rgb[1])).append(' ')
@@ -1382,11 +1458,13 @@ public class LaporanController implements Initializable {
                     .append(format(width)).append(' ').append(format(height)).append(" re f\n");
         }
 
+        /** Menggambar kotak visual; radius disederhanakan agar generator PDF tetap ringan. */
         private void roundedRect(double x, double y, double width, double height, double radius, String color) {
             // Keep the PDF generator compact: rectangle fill with the same spacing/color language.
             rect(x, y, width, height, color);
         }
 
+        /** Menggambar garis kotak untuk border tabel PDF. */
         private void strokeRect(double x, double y, double width, double height, String color) {
             double[] rgb = rgb(color);
             content.append(format(rgb[0])).append(' ').append(format(rgb[1])).append(' ')
@@ -1395,6 +1473,7 @@ public class LaporanController implements Initializable {
                     .append(format(width)).append(' ').append(format(height)).append(" re S\n");
         }
 
+        /** Menggambar logo JPEG ke halaman PDF. */
         private void image(PdfLogo logo, double x, double y, double width) {
             if (logo == null) {
                 return;
@@ -1405,10 +1484,12 @@ public class LaporanController implements Initializable {
                     .append(format(x)).append(' ').append(format(y)).append(" cm /Im1 Do Q\n");
         }
 
+        /** Mengembalikan semua perintah gambar halaman sebagai content stream PDF. */
         private String content() {
             return content.toString();
         }
 
+        /** Mengubah warna hex menjadi nilai RGB PDF 0-1. */
         private static double[] rgb(String hex) {
             int r = Integer.parseInt(hex.substring(0, 2), 16);
             int g = Integer.parseInt(hex.substring(2, 4), 16);
@@ -1416,6 +1497,7 @@ public class LaporanController implements Initializable {
             return new double[]{r / 255.0, g / 255.0, b / 255.0};
         }
 
+        /** Escape teks agar aman ditulis ke stream PDF. */
         private static String pdfEscape(String value) {
             if (value == null) {
                 return "";
@@ -1428,11 +1510,13 @@ public class LaporanController implements Initializable {
                     .replace("\n", " ");
         }
 
+        /** Format angka desimal PDF memakai locale US. */
         private static String format(double value) {
             return String.format(Locale.US, "%.2f", value);
         }
     }
 
+    /** Membangun bagian CSV untuk laporan penjualan. */
     private String buildSalesCsv(Connection conn, DateRange range) throws SQLException {
         StringBuilder csv = new StringBuilder();
         appendReportTitle(csv, "Laporan Penjualan", range);
@@ -1502,6 +1586,7 @@ public class LaporanController implements Initializable {
         return csv.toString();
     }
 
+    /** Membangun bagian CSV untuk laporan stok. */
     private String buildStockCsv(Connection conn, DateRange range) throws SQLException {
         StringBuilder csv = new StringBuilder();
         appendReportTitle(csv, "Laporan Stok", range);
@@ -1524,13 +1609,14 @@ public class LaporanController implements Initializable {
                         rs.getString("satuan"),
                         String.valueOf(jumlah),
                         String.valueOf(minimum),
-                        jumlah <= minimum ? "Menipis" : "Aman");
+                        jumlah <= 0 ? "Habis" : jumlah <= minimum ? "Menipis" : "Aman");
             }
         }
 
         return csv.toString();
     }
 
+    /** Membangun bagian CSV untuk laporan hutang/piutang. */
     private String buildDebtCsv(Connection conn, DateRange range) throws SQLException {
         StringBuilder csv = new StringBuilder();
         appendReportTitle(csv, "Laporan Hutang Piutang", range);
@@ -1554,6 +1640,7 @@ public class LaporanController implements Initializable {
         return csv.toString();
     }
 
+    /** Menambahkan baris hutang atau piutang belum lunas ke CSV export. */
     private void appendDebtRows(StringBuilder csv, Connection conn, String tipe, DateRange range) throws SQLException {
         appendCsvRow(csv, capitalize(tipe) + " Belum Lunas");
         appendCsvRow(csv, "Nama", "Nominal", "Tanggal", "Keterangan");
@@ -1580,12 +1667,14 @@ public class LaporanController implements Initializable {
         }
     }
 
+    /** Menulis judul section dan periode pada CSV. */
     private void appendReportTitle(StringBuilder csv, String title, DateRange range) {
         appendCsvRow(csv, title);
         appendCsvRow(csv, "Periode", range.start() + " - " + range.end());
         csv.append(System.lineSeparator());
     }
 
+    /** Menambahkan satu baris CSV dengan escaping otomatis. */
     private void appendCsvRow(StringBuilder csv, String... values) {
         for (int i = 0; i < values.length; i++) {
             if (i > 0) {
@@ -1596,6 +1685,7 @@ public class LaporanController implements Initializable {
         csv.append(System.lineSeparator());
     }
 
+    /** Escape nilai CSV yang berisi koma, kutip, atau baris baru. */
     private String escapeCsv(String value) {
         if (value == null) {
             return "";
@@ -1607,6 +1697,7 @@ public class LaporanController implements Initializable {
         return escaped;
     }
 
+    /** Menyiapkan query yang memakai tanggal harian biasa. */
     private PreparedStatement preparePeriod(Connection conn, String sql, DateRange range) throws SQLException {
         PreparedStatement ps = conn.prepareStatement(sql);
         ps.setString(1, range.start().toString());
@@ -1614,6 +1705,7 @@ public class LaporanController implements Initializable {
         return ps;
     }
 
+    /** Menyiapkan query transaksi dengan range timestamp awal hari sampai hari berikutnya. */
     private PreparedStatement prepareTransactionPeriod(Connection conn, String sql, DateRange range) throws SQLException {
         PreparedStatement ps = conn.prepareStatement(sql);
         ps.setString(1, range.start() + " 00:00:00");
@@ -1621,6 +1713,7 @@ public class LaporanController implements Initializable {
         return ps;
     }
 
+    /** Membuat baris UI untuk penjualan per menu. */
     private HBox createSalesMenuRow(String nama, int qty, double total) {
         HBox row = createReportRow();
         row.getChildren().addAll(label(nama, "report-row-title", true),
@@ -1630,6 +1723,7 @@ public class LaporanController implements Initializable {
         return row;
     }
 
+    /** Membuat baris UI untuk detail transaksi di laporan penjualan. */
     private HBox createTransactionRow(String items, String tanggal, String metode, double total) {
         HBox row = createReportRow();
 
@@ -1642,6 +1736,7 @@ public class LaporanController implements Initializable {
         return row;
     }
 
+    /** Membuat baris mini untuk stok aman atau stok perlu perhatian. */
     private HBox createStockMiniRow(String nama, String jumlah, boolean warning) {
         HBox row = createReportRow();
         row.getStyleClass().add(warning ? "report-stock-warning-row" : "report-stock-safe-row");
@@ -1651,6 +1746,7 @@ public class LaporanController implements Initializable {
         return row;
     }
 
+    /** Membuat header tabel detail stok. */
     private HBox createStockHeader() {
         HBox row = createReportHeader();
         row.getChildren().addAll(
@@ -1663,6 +1759,7 @@ public class LaporanController implements Initializable {
         return row;
     }
 
+    /** Membuat baris tabel detail stok lengkap. */
     private HBox createStockDetailRow(String nama, String satuan, int jumlah, int min, String status) {
         HBox row = createReportTableRow();
         row.getChildren().addAll(
@@ -1675,6 +1772,7 @@ public class LaporanController implements Initializable {
         return row;
     }
 
+    /** Membuat header tabel hutang/piutang pada laporan. */
     private HBox createDebtHeader() {
         HBox row = createReportHeader();
         row.getChildren().addAll(
@@ -1686,6 +1784,7 @@ public class LaporanController implements Initializable {
         return row;
     }
 
+    /** Membuat baris data hutang/piutang pada laporan. */
     private HBox createDebtRow(String nama, double nominal, String tanggal, String keterangan) {
         HBox row = createReportTableRow();
         row.getChildren().addAll(
@@ -1697,6 +1796,7 @@ public class LaporanController implements Initializable {
         return row;
     }
 
+    /** Membuat row list standar untuk panel laporan. */
     private HBox createReportRow() {
         HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -1705,6 +1805,7 @@ public class LaporanController implements Initializable {
         return row;
     }
 
+    /** Membuat row header tabel laporan. */
     private HBox createReportHeader() {
         HBox row = new HBox(12);
         row.setPadding(new Insets(0, 8, 10, 8));
@@ -1712,6 +1813,7 @@ public class LaporanController implements Initializable {
         return row;
     }
 
+    /** Membuat row isi tabel laporan. */
     private HBox createReportTableRow() {
         HBox row = new HBox(12);
         row.setPadding(new Insets(10, 8, 10, 8));
@@ -1719,6 +1821,7 @@ public class LaporanController implements Initializable {
         return row;
     }
 
+    /** Membuat label kolom header dengan proporsi lebar. */
     private Label columnLabel(String text, int grow) {
         Label label = label(text, "report-column-title", true);
         HBox.setHgrow(label, Priority.ALWAYS);
@@ -1727,6 +1830,7 @@ public class LaporanController implements Initializable {
         return label;
     }
 
+    /** Membuat nilai kolom tabel dengan proporsi lebar. */
     private Label columnValue(String text, int grow) {
         Label label = label(text, "report-column-text", false);
         HBox.setHgrow(label, Priority.ALWAYS);
@@ -1735,17 +1839,21 @@ public class LaporanController implements Initializable {
         return label;
     }
 
+    /** Membuat nilai kolom nominal dengan warna penekanan. */
     private Label columnMoney(String text, int grow) {
         Label label = columnValue(text, grow);
         label.getStyleClass().add("report-row-danger");
         return label;
     }
 
+    /** Membuat badge status stok pada laporan. */
     private Label statusBadge(String status) {
         Label label = new Label(status);
         label.getStyleClass().add("report-status-badge");
         if ("Aman".equals(status)) {
             label.getStyleClass().add("report-status-safe");
+        } else if ("Habis".equals(status)) {
+            label.getStyleClass().add("report-status-empty");
         } else {
             label.getStyleClass().add("report-status-warning");
         }
@@ -1753,6 +1861,7 @@ public class LaporanController implements Initializable {
         return label;
     }
 
+    /** Membuat Label JavaFX dengan style class dan opsi wrap text. */
     private Label label(String text, String styleClass, boolean wrap) {
         Label label = new Label(text);
         label.getStyleClass().add(styleClass);
@@ -1760,16 +1869,19 @@ public class LaporanController implements Initializable {
         return label;
     }
 
+    /** Spacer fleksibel untuk mendorong elemen ke sisi kanan. */
     private Region spacer() {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         return spacer;
     }
 
+    /** Menampilkan empty state pada container laporan. */
     private void showEmpty(VBox target, String message) {
         target.getChildren().add(createEmptyState(message));
     }
 
+    /** Membuat komponen empty state laporan. */
     private VBox createEmptyState(String text) {
         VBox empty = new VBox();
         empty.setAlignment(Pos.CENTER);
@@ -1782,6 +1894,7 @@ public class LaporanController implements Initializable {
         return empty;
     }
 
+    /** Mengisi angka hutang/piutang menjadi nol saat database tidak tersedia. */
     private void setDebtFallback() {
         lblHutangBelum.setText("Rp 0");
         lblHutangLunas.setText("Rp 0");
@@ -1791,21 +1904,25 @@ public class LaporanController implements Initializable {
         lblTotalPiutang.setText("Rp 0");
     }
 
+    /** Mengosongkan isi container dengan pengecekan null. */
     private void clear(VBox container) {
         if (container != null) {
             container.getChildren().clear();
         }
     }
 
+    /** Mengatur visible dan managed agar layout tab laporan tidak menyisakan ruang kosong. */
     private void setVisible(VBox panel, boolean visible) {
         panel.setVisible(visible);
         panel.setManaged(visible);
     }
 
+    /** Format nominal laporan menjadi Rupiah. */
     private String formatCurrency(double amount) {
         return CurrencyFormatUtil.formatRupiah(amount);
     }
 
+    /** Mengambil item dan metode pembayaran untuk satu transaksi. */
     private TransactionSummary loadTransactionSummary(Connection conn, int idTransaksi) throws SQLException {
         String sql = """
                 SELECT COALESCE(td.nama_menu_snapshot, m.nama_menu) AS nama_menu,

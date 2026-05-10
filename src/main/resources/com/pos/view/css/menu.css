@@ -1,3 +1,7 @@
+/*
+ * Style bersama untuk halaman operasional: menu, stok, kasir,
+ * hutang/piutang, dialog form, tabel, badge, dan laporan.
+ */
 .page-root {
     -fx-background-color: #F5F7FB;
 }
@@ -391,19 +395,28 @@
 }
 
 .report-status-badge {
+    /* Badge status di laporan stok: dipakai oleh LaporanController.statusBadge(). */
     -fx-background-radius: 6;
     -fx-padding: 5 10 5 10;
     -fx-font-size: 12;
 }
 
 .report-status-safe {
+    /* Warna hijau untuk stok aman. */
     -fx-background-color: #DCFCE7;
     -fx-text-fill: #16A34A;
 }
 
 .report-status-warning {
+    /* Warna oranye untuk stok menipis yang perlu diperhatikan. */
     -fx-background-color: #FEF3C7;
     -fx-text-fill: #EA580C;
+}
+
+.report-status-empty {
+    /* Warna merah untuk jumlah stok 0 agar konsisten dengan halaman Kelola Stok. */
+    -fx-background-color: #FEE2E2;
+    -fx-text-fill: #DC2626;
 }
 
 .report-debt-card-red {

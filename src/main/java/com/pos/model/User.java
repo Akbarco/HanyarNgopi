@@ -2,6 +2,10 @@ package com.pos.model;
 
 import java.time.LocalDateTime;
 
+/**
+ * Model data pengguna aplikasi.
+ * Dipakai untuk login admin/owner dan menyimpan informasi sesi pengguna aktif.
+ */
 public class User {
     private int idUser;
     private String username;

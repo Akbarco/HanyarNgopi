@@ -3,6 +3,10 @@ package com.pos.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Model hutang/piutang.
+ * Satu model dipakai untuk dua tipe data agar layar hutang dan piutang bisa berbagi alur.
+ */
 public class Debt {
     private int idDebt;
     private String nama;
@@ -90,6 +94,9 @@ public class Debt {
         this.createdAt = createdAt;
     }
 
+    /**
+     * Helper status untuk menentukan badge dan tombol aksi pada layar hutang/piutang.
+     */
     public boolean isBelumLunas() {
         return "belum".equalsIgnoreCase(status);
     }

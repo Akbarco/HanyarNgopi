@@ -9,8 +9,16 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
+/**
+ * Titik masuk aplikasi JavaFX.
+ * Alur awal: siapkan database lokal, buat user default, lalu buka layar login.
+ */
 public class MainApp extends Application {
 
+    /**
+     * Dipanggil JavaFX saat aplikasi dibuka.
+     * Method ini menghubungkan aplikasi ke database dan menampilkan halaman login.
+     */
     @Override
     public void start(Stage primaryStage) throws Exception {
         initDatabase.init();
@@ -35,6 +43,9 @@ public class MainApp extends Application {
         Platform.runLater(() -> primaryStage.setMaximized(true));
     }
 
+    /**
+     * Entry point standar Java yang meneruskan kontrol ke runtime JavaFX.
+     */
     public static void main(String[] args) {
         launch(args);
     }

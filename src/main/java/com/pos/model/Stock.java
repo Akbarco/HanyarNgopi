@@ -1,5 +1,9 @@
 package com.pos.model;
 
+/**
+ * Model data stok untuk setiap menu/produk.
+ * Status stok dihitung dari jumlah saat ini dan batas minimum.
+ */
 public class Stock {
     private int idStok;
     private int idMenu;
@@ -36,7 +40,13 @@ public class Stock {
     public String getNamaMenu() { return namaMenu; }
     public void setNamaMenu(String namaMenu) { this.namaMenu = namaMenu; }
 
+    /**
+     * Mengubah angka stok menjadi status yang mudah dibaca di tabel dan dashboard.
+     */
     public String getStatus() {
+        if (jumlahStok <= 0) {
+            return "Stok Habis";
+        }
         return jumlahStok <= stokMinimum ? "Stok Menipis" : "Stok Aman";
     }
 }

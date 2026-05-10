@@ -14,8 +14,15 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DAO hutang/piutang.
+ * Mengelola tabel debts dan payment untuk pencatatan kewajiban serta pelunasan.
+ */
 public class DebtDAO {
 
+    /**
+     * Mengambil data hutang atau piutang berdasarkan tipe.
+     */
     public List<Debt> findAllByType(String tipe) {
         List<Debt> list = new ArrayList<>();
         String sql = """
@@ -45,6 +52,9 @@ public class DebtDAO {
         return list;
     }
 
+    /**
+     * Menyimpan hutang/piutang baru.
+     */
     public void insert(Debt debt) {
         if (debt == null || debt.getNominal() <= 0) {
             throw new IllegalArgumentException("Nominal hutang/piutang harus positif.");
@@ -74,6 +84,9 @@ public class DebtDAO {
         }
     }
 
+    /**
+     * Menghapus hutang/piutang beserta catatan payment yang terhubung.
+     */
     public void delete(int idDebt) {
         String deletePaymentSql = "DELETE FROM payment WHERE id_debt = ?";
         String deleteDebtSql = "DELETE FROM debts WHERE id_debt = ?";
@@ -104,6 +117,9 @@ public class DebtDAO {
         }
     }
 
+    /**
+     * Menandai hutang/piutang sebagai lunas dan membuat catatan pembayaran.
+     */
     public void markAsPaid(Debt debt) {
         String updateDebtSql = "UPDATE debts SET status = 'lunas' WHERE id_debt = ?";
         String insertPaymentSql = """
@@ -139,6 +155,9 @@ public class DebtDAO {
         }
     }
 
+    /**
+     * Menghitung total nominal yang belum lunas untuk dashboard dan halaman hutang/piutang.
+     */
     public double getOutstandingTotal(String tipe) {
         String sql = """
             SELECT COALESCE(SUM(nominal), 0)
@@ -165,6 +184,9 @@ public class DebtDAO {
         return 0;
     }
 
+    /**
+     * Menghitung jumlah item hutang/piutang yang belum lunas.
+     */
     public int getOutstandingCount(String tipe) {
         String sql = """
             SELECT COUNT(*)
@@ -191,6 +213,9 @@ public class DebtDAO {
         return 0;
     }
 
+    /**
+     * Mengubah satu baris ResultSet menjadi objek Debt.
+     */
     private Debt mapRow(ResultSet rs) throws SQLException {
         Debt debt = new Debt();
         debt.setIdDebt(rs.getInt("id_debt"));
@@ -204,6 +229,9 @@ public class DebtDAO {
         return debt;
     }
 
+    /**
+     * Membaca tanggal dari kolom database dengan aman.
+     */
     private LocalDate readDate(ResultSet rs, String column) throws SQLException {
         String value = rs.getString(column);
         if (value == null || value.isBlank()) {
@@ -212,6 +240,9 @@ public class DebtDAO {
         return LocalDate.parse(value);
     }
 
+    /**
+     * Membaca tanggal dan waktu dari kolom database dengan aman.
+     */
     private LocalDateTime readDateTime(ResultSet rs, String column) throws SQLException {
         String value = rs.getString(column);
         if (value == null || value.isBlank()) {

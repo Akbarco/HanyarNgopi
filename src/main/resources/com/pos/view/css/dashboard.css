@@ -1,3 +1,7 @@
+/*
+ * Style khusus dashboard utama: sidebar, header, kartu ringkasan,
+ * dan kontainer halaman yang dimuat oleh DashboardController.
+ */
 .dashboard-root {
     -fx-background-color: #F5F7FB;
 }

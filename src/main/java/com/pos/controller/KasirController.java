@@ -42,6 +42,12 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Controller halaman Transaksi/Kasir.
+ *
+ * Layar ini membaca menu dari MenuDAO, menyimpan transaksi lewat KasirService,
+ * dan menampilkan riwayat dari TransaksiDAO. Saat transaksi disimpan, stok ikut berkurang.
+ */
 public class KasirController implements Initializable {
 
     @FXML private VBox containerRiwayat;
@@ -61,12 +67,14 @@ public class KasirController implements Initializable {
     private final Locale localeId = new Locale("id", "ID");
     private List<Transaksi> transaksiList = new ArrayList<>();
 
+    /** Menyiapkan filter riwayat transaksi dan memuat data awal. */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setupFilters();
         loadRiwayat();
     }
 
+    /** Menghubungkan search, filter metode, dan sort total ke riwayat transaksi. */
     private void setupFilters() {
         if (cmbFilterMetode != null) {
             cmbFilterMetode.setItems(FXCollections.observableArrayList("Semua metode", "Tunai", "QRIS"));
@@ -85,6 +93,7 @@ public class KasirController implements Initializable {
         }
     }
 
+    /** Mengambil seluruh transaksi dari database melalui TransaksiDAO. */
     private void loadRiwayat() {
         if (containerRiwayat == null) {
             return;
@@ -94,6 +103,7 @@ public class KasirController implements Initializable {
         renderFilteredRiwayat();
     }
 
+    /** Merender ulang kartu riwayat setelah filter atau sort berubah. */
     private void renderFilteredRiwayat() {
         if (containerRiwayat == null) {
             return;
@@ -120,6 +130,7 @@ public class KasirController implements Initializable {
         }
     }
 
+    /** Mengecek apakah transaksi cocok dengan keyword dan metode pembayaran. */
     private boolean matchesFilters(Transaksi transaksi) {
         List<TransaksiDetail> details = transaksiDAO.findDetailByTransaksiId(transaksi.getIdTransaksi());
         String keyword = txtSearchTransaksi == null ? "" : txtSearchTransaksi.getText();
@@ -142,6 +153,7 @@ public class KasirController implements Initializable {
         return matchesSearch && matchesMethod;
     }
 
+    /** Menentukan urutan riwayat: terbaru, nominal tertinggi, atau nominal terendah. */
     private Comparator<Transaksi> transactionComparator() {
         String sort = cmbSortTotal == null ? "Terbaru" : cmbSortTotal.getValue();
         if ("Transaksi tertinggi".equals(sort)) {
@@ -154,6 +166,7 @@ public class KasirController implements Initializable {
     }
 
     @FXML
+    /** Reset filter riwayat transaksi ke kondisi awal. */
     public void handleResetFilter() {
         if (txtSearchTransaksi != null) txtSearchTransaksi.clear();
         if (cmbFilterMetode != null) cmbFilterMetode.setValue("Semua metode");
@@ -161,6 +174,7 @@ public class KasirController implements Initializable {
         renderFilteredRiwayat();
     }
 
+    /** Menghitung ringkasan total pembayaran, jumlah transaksi, rata-rata, dan metode terbanyak. */
     private void updateSummaryCards(List<Transaksi> transaksiList) {
         double total = transaksiList.stream().mapToDouble(Transaksi::getTotal).sum();
         int count = transaksiList.size();
@@ -196,12 +210,14 @@ public class KasirController implements Initializable {
         }
     }
 
+    /** Mengisi label ringkasan jika komponen FXML tersedia. */
     private void setLabel(Label label, String value) {
         if (label != null) {
             label.setText(value);
         }
     }
 
+    /** Membuat kartu visual untuk satu transaksi dan daftar itemnya. */
     private VBox buildTransaksiCard(Transaksi transaksi, List<TransaksiDetail> details) {
         VBox card = new VBox(12);
         card.setMaxWidth(Double.MAX_VALUE);
@@ -290,10 +306,12 @@ public class KasirController implements Initializable {
     }
 
     @FXML
+    /** Membuka dialog transaksi baru. */
     public void handleTransaksiBaru() {
         showTransaksiDialog();
     }
 
+    /** Membuat alur transaksi baru: pilih menu, isi qty, masuk keranjang, validasi stok, lalu simpan. */
     private void showTransaksiDialog() {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
@@ -508,6 +526,7 @@ public class KasirController implements Initializable {
         dialog.showAndWait();
     }
 
+    /** Memudahkan user memilih menu dengan mengetik huruf awal nama menu. */
     private void enableMenuKeyboardJump(ComboBox<Menu> comboBox) {
         ObservableList<Menu> allItems = FXCollections.observableArrayList(comboBox.getItems());
         comboBox.setOnHidden(event -> comboBox.setItems(allItems));
@@ -535,6 +554,7 @@ public class KasirController implements Initializable {
         });
     }
 
+    /** Format tampilan item menu di ComboBox transaksi. */
     private ListCell<Menu> createMenuCell() {
         return new ListCell<>() {
             @Override
@@ -549,6 +569,7 @@ public class KasirController implements Initializable {
         };
     }
 
+    /** Merender isi keranjang dan menghitung total pembayaran sementara. */
     private void renderKeranjang(ObservableList<TransaksiDetail> keranjang,
                                  VBox keranjangContainer,
                                  Button btnSimpan,
@@ -614,6 +635,7 @@ public class KasirController implements Initializable {
         ));
     }
 
+    /** Menambahkan menu ke keranjang atau menggabungkan qty jika itemnya sudah ada. */
     private void mergeCartItem(ObservableList<TransaksiDetail> keranjang, Menu menu, int qty) {
         for (TransaksiDetail item : keranjang) {
             if (item.getIdMenu() == menu.getIdMenu()) {
@@ -633,6 +655,7 @@ public class KasirController implements Initializable {
         keranjang.add(detail);
     }
 
+    /** Menghitung qty item tertentu yang sudah ada di keranjang. */
     private int getCartQty(List<TransaksiDetail> keranjang, int idMenu) {
         int total = 0;
         for (TransaksiDetail detail : keranjang) {
@@ -643,12 +666,14 @@ public class KasirController implements Initializable {
         return total;
     }
 
+    /** Membuat label form dengan style konsisten. */
     private Label fieldLabel(String text) {
         Label label = new Label(text);
         label.getStyleClass().add("form-label");
         return label;
     }
 
+    /** Style lama untuk input transaksi; disimpan bila perlu fallback inline style. */
     private String inputStyle() {
         return "-fx-background-color: #F3F4F6;" +
                 "-fx-background-radius: 10;" +
@@ -659,6 +684,7 @@ public class KasirController implements Initializable {
                 "-fx-padding: 0 14 0 14;";
     }
 
+    /** Style lama untuk ComboBox transaksi; disimpan bila perlu fallback inline style. */
     private String selectStyle() {
         return "-fx-background-color: #F3F4F6;" +
                 "-fx-background-radius: 10;" +
@@ -669,6 +695,7 @@ public class KasirController implements Initializable {
                 "-fx-padding: 0 14 0 14;";
     }
 
+    /** Style lama tombol aksi utama. */
     private String primaryActionStyle() {
         return "-fx-background-color: #111827;" +
                 "-fx-text-fill: white;" +
@@ -678,6 +705,7 @@ public class KasirController implements Initializable {
                 "-fx-cursor: hand;";
     }
 
+    /** Style lama tombol sekunder. */
     private String secondaryButtonStyle() {
         return "-fx-background-color: white;" +
                 "-fx-text-fill: #374151;" +
@@ -689,6 +717,7 @@ public class KasirController implements Initializable {
                 "-fx-padding: 0 18 0 18;";
     }
 
+    /** Style tombol simpan saat keranjang sudah berisi item. */
     private String enabledButtonStyle() {
         return "-fx-background-color: #111827;" +
                 "-fx-text-fill: white;" +
@@ -700,6 +729,7 @@ public class KasirController implements Initializable {
                 "-fx-padding: 0 22 0 22;";
     }
 
+    /** Style tombol simpan saat keranjang masih kosong. */
     private String disabledButtonStyle() {
         return "-fx-background-color: #A1A1AA;" +
                 "-fx-text-fill: white;" +
@@ -710,6 +740,7 @@ public class KasirController implements Initializable {
                 "-fx-padding: 0 22 0 22;";
     }
 
+    /** Format input uang otomatis jika helper ini dipakai di form kasir. */
     private void configureCurrencyField(TextField field) {
         final boolean[] updating = {false};
         field.textProperty().addListener((obs, oldValue, newValue) -> {
@@ -737,6 +768,7 @@ public class KasirController implements Initializable {
         });
     }
 
+    /** Parser uang opsional dengan nilai fallback. */
     private double parseOptionalCurrency(String value, double fallback) {
         String digits = extractDigits(value);
         if (digits.isBlank()) {
@@ -745,10 +777,12 @@ public class KasirController implements Initializable {
         return Double.parseDouble(normalizeLeadingZeros(digits));
     }
 
+    /** Mengambil karakter angka dari input uang. */
     private String extractDigits(String value) {
         return value == null ? "" : value.replaceAll("[^0-9]", "");
     }
 
+    /** Menghapus nol di depan agar angka aman diparse. */
     private String normalizeLeadingZeros(String digits) {
         if (digits == null || digits.isBlank()) {
             return "";
@@ -756,18 +790,22 @@ public class KasirController implements Initializable {
         return digits.replaceFirst("^0+(?!$)", "");
     }
 
+    /** Pencarian teks aman terhadap nilai null. */
     private boolean contains(String source, String query) {
         return source != null && source.toLowerCase(localeId).contains(query);
     }
 
+    /** Mengubah nominal menjadi format Rupiah. */
     private String formatCurrency(double amount) {
         return CurrencyFormatUtil.formatRupiah(amount);
     }
 
+    /** Menampilkan menu sebagai nama plus harga pada pilihan transaksi. */
     private String formatMenuOption(Menu menu) {
         return menu.getNamaMenu() + " - " + formatCurrency(menu.getHarga());
     }
 
+    /** Mengubah kode metode pembayaran database ke label user. */
     private String formatMetodeLabel(String metode) {
         if (metode == null) {
             return "-";

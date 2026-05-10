@@ -7,10 +7,17 @@ using System.Windows.Forms;
 
 namespace HanyarNgopiInstaller
 {
+    /// <summary>
+    /// Program kecil yang menjadi pembungkus installer.
+    /// File ZIP aplikasi ditempel di belakang exe ini, lalu diekstrak saat dijalankan.
+    /// </summary>
     internal static class InstallerStub
     {
         private static readonly byte[] Marker = System.Text.Encoding.ASCII.GetBytes("__HANYAR_NGOPI_PAYLOAD_V1__");
 
+        /// <summary>
+        /// Entry point installer: membaca payload ZIP dari exe sendiri lalu menjalankan proses instalasi.
+        /// </summary>
         [STAThread]
         private static int Main()
         {

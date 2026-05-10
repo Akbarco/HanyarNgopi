@@ -24,6 +24,12 @@ import java.net.URL;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Controller halaman Kelola Stok.
+ *
+ * Layar ini memakai StockService untuk membaca/menulis stok ke database.
+ * Status stok dihitung dari jumlah dan stok minimum: aman, menipis, atau habis.
+ */
 public class StockController implements Initializable {
 
     private static final ObservableList<String> SATUAN_OPTIONS = FXCollections.observableArrayList(
@@ -51,6 +57,7 @@ public class StockController implements Initializable {
     private final ObservableList<Stock> stockList = FXCollections.observableArrayList();
     private final FilteredList<Stock> filteredStockList = new FilteredList<>(stockList, stock -> true);
 
+    /** Menyiapkan kolom tabel, pencarian/filter, lalu memuat data stok dari service. */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setupColumns();
@@ -58,6 +65,7 @@ public class StockController implements Initializable {
         loadData();
     }
 
+    /** Menghubungkan input pencarian dan filter status/satuan ke daftar stok. */
     private void setupSearch() {
         if (tableStock != null) {
             tableStock.setItems(filteredStockList);
@@ -80,6 +88,7 @@ public class StockController implements Initializable {
         }
     }
 
+    /** Mengatur semua kolom tabel, badge status, dan tombol aksi edit/hapus. */
     private void setupColumns() {
         colNama.setPrefWidth(240);
         colNama.setMinWidth(200);
@@ -163,6 +172,16 @@ public class StockController implements Initializable {
                                     "-fx-font-size: 11;" +
                                     "-fx-font-weight: bold;"
                     );
+                } else if (item.equals("Stok Habis")) {
+                    badge.setText("! Stok Habis");
+                    badge.setStyle(
+                            "-fx-background-color: #FEE2E2;" +
+                                    "-fx-text-fill: #DC2626;" +
+                                    "-fx-background-radius: 20;" +
+                                    "-fx-padding: 4 14 4 14;" +
+                                    "-fx-font-size: 11;" +
+                                    "-fx-font-weight: bold;"
+                    );
                 } else {
                     badge.setText("⚠ Stok Menipis");
                     badge.setStyle(
@@ -219,6 +238,7 @@ public class StockController implements Initializable {
         });
     }
 
+    /** Mengambil ulang data stok dari StockService lalu menyegarkan tabel dan kartu ringkasan. */
     private void loadData() {
         stockList.setAll(stockService.getAllStock());
         refreshSatuanFilterOptions();
@@ -226,6 +246,7 @@ public class StockController implements Initializable {
         updateSummaryCards();
     }
 
+    /** Menyaring stok berdasarkan keyword, status, dan satuan yang dipilih user. */
     private void applySearchFilter() {
         String keyword = txtSearchStock == null ? "" : txtSearchStock.getText();
         String query = keyword == null ? "" : keyword.trim().toLowerCase();
@@ -250,6 +271,7 @@ public class StockController implements Initializable {
         });
     }
 
+    /** Menjaga pilihan satuan tetap lengkap, termasuk satuan lama yang mungkin sudah ada di data. */
     private void refreshSatuanFilterOptions() {
         if (cmbFilterSatuan == null) {
             return;
@@ -271,6 +293,7 @@ public class StockController implements Initializable {
         cmbFilterSatuan.setValue(options.contains(current) ? current : "Semua satuan");
     }
 
+    /** Mencocokkan stok dengan filter status, termasuk jumlah 0 sebagai Stok Habis. */
     private boolean matchesStockStatus(Stock stock, String status) {
         return switch (status) {
             case "Stok Habis" -> stock.getJumlahStok() <= 0;
@@ -281,6 +304,7 @@ public class StockController implements Initializable {
         };
     }
 
+    /** Menghitung total produk, stok aman, stok menipis, dan stok habis untuk kartu atas. */
     private void updateSummaryCards() {
         int total = stockList.size();
         long habis = stockList.stream()
@@ -299,6 +323,7 @@ public class StockController implements Initializable {
         setLabel(lblStokHabis, String.valueOf(habis));
     }
 
+    /** Mengisi angka ringkasan hanya jika label FXML tersedia. */
     private void setLabel(Label label, String value) {
         if (label != null) {
             label.setText(value);
@@ -306,11 +331,13 @@ public class StockController implements Initializable {
     }
 
     @FXML
+    /** Membuka dialog tambah stok baru. */
     public void handleTambahStock() {
         showTambahDialog();
     }
 
     @FXML
+    /** Mengembalikan pencarian dan filter stok ke kondisi awal. */
     public void handleResetFilter() {
         if (txtSearchStock != null) txtSearchStock.clear();
         if (cmbFilterStatus != null) cmbFilterStatus.setValue("Semua status");
@@ -318,6 +345,7 @@ public class StockController implements Initializable {
         applySearchFilter();
     }
 
+    /** Membuat form modal untuk menambah stok yang terhubung ke menu aktif. */
     private void showTambahDialog() {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
@@ -433,6 +461,7 @@ public class StockController implements Initializable {
         dialog.showAndWait();
     }
 
+    /** Memudahkan pencarian menu di ComboBox dengan mengetik huruf awal nama menu. */
     private void enableMenuKeyboardJump(ComboBox<Menu> comboBox) {
         ObservableList<Menu> allItems = FXCollections.observableArrayList(comboBox.getItems());
         comboBox.setOnHidden(event -> comboBox.setItems(allItems));
@@ -460,6 +489,7 @@ public class StockController implements Initializable {
         });
     }
 
+    /** Membuat form modal untuk mengubah jumlah, satuan, dan minimum stok. */
     private void showEditDialog(Stock stock) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
@@ -563,30 +593,35 @@ public class StockController implements Initializable {
 
     // ===== HELPERS =====
 
+    /** Membuat label form dengan style yang konsisten. */
     private Label fieldLabel(String text) {
         Label lbl = new Label(text);
         lbl.getStyleClass().add("form-label");
         return lbl;
     }
 
+    /** Membungkus layout dialog dengan scene dan stylesheet aplikasi. */
     private Scene createDialogScene(VBox root, double width, double height) {
         Scene scene = new Scene(root, width, height);
         scene.getStylesheets().add(getClass().getResource("/com/pos/view/css/menu.css").toExternalForm());
         return scene;
     }
 
+    /** Membungkus label agar dua kolom form punya pembagian lebar yang sama. */
     private VBox wrapLabel(Label lbl) {
         VBox box = new VBox(lbl);
         HBox.setHgrow(box, Priority.ALWAYS);
         return box;
     }
 
+    /** Style lama untuk input; masih disimpan sebagai helper jika dibutuhkan lagi. */
     private String inputStyle() {
         return "-fx-background-color: #F3F4F6; -fx-background-radius: 8;" +
                 "-fx-border-color: transparent; -fx-pref-height: 40;" +
                 "-fx-font-size: 13; -fx-padding: 0 12 0 12;";
     }
 
+    /** Pencarian teks aman terhadap nilai null. */
     private boolean contains(String source, String query) {
         return source != null && source.toLowerCase().contains(query);
     }

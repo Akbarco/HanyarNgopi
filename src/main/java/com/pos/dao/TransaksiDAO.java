@@ -10,8 +10,15 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DAO transaksi.
+ * Mengelola tabel transactions dan transaction_detail untuk riwayat penjualan.
+ */
 public class TransaksiDAO {
 
+    /**
+     * Menyimpan header transaksi dengan koneksi baru.
+     */
     public int insertTransaksi(Transaksi t) {
         try (Connection conn = koneksi.getConnection()) {
             return insertTransaksi(conn, t);
@@ -21,6 +28,9 @@ public class TransaksiDAO {
         return -1;
     }
 
+    /**
+     * Menyimpan header transaksi memakai koneksi yang sama dengan detail dan stok.
+     */
     public int insertTransaksi(Connection conn, Transaksi t) throws SQLException {
         String sql = "INSERT INTO transactions (id_user, tanggal, total) VALUES (?, CURRENT_TIMESTAMP, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -33,6 +43,9 @@ public class TransaksiDAO {
         return -1;
     }
 
+    /**
+     * Menyimpan detail item transaksi dengan koneksi baru.
+     */
     public void insertDetail(TransaksiDetail detail) {
         try (Connection conn = koneksi.getConnection()) {
             insertDetail(conn, detail);
@@ -41,6 +54,9 @@ public class TransaksiDAO {
         }
     }
 
+    /**
+     * Menyimpan detail item transaksi memakai koneksi transaksi yang sama.
+     */
     public void insertDetail(Connection conn, TransaksiDetail detail) throws SQLException {
         String sql = """
             INSERT INTO transaction_detail
@@ -59,6 +75,9 @@ public class TransaksiDAO {
         }
     }
 
+    /**
+     * Mengambil seluruh riwayat transaksi untuk halaman Kasir.
+     */
     public List<Transaksi> findAll() {
         List<Transaksi> list = new ArrayList<>();
         String sql = "SELECT * FROM transactions ORDER BY tanggal DESC, id_transaksi DESC";
@@ -83,6 +102,9 @@ public class TransaksiDAO {
         return list;
     }
 
+    /**
+     * Mengambil rincian menu dalam satu transaksi.
+     */
     public List<TransaksiDetail> findDetailByTransaksiId(int idTransaksi) {
         List<TransaksiDetail> list = new ArrayList<>();
         String sql = """
@@ -119,6 +141,9 @@ public class TransaksiDAO {
         return list;
     }
 
+    /**
+     * Mengubah tanggal transaksi dari database menjadi LocalDateTime.
+     */
     private LocalDateTime readDateTime(ResultSet rs, String column) throws SQLException {
         String value = rs.getString(column);
         if (value == null || value.isBlank()) {

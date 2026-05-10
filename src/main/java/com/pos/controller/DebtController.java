@@ -39,6 +39,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Controller halaman Hutang dan Piutang.
+ *
+ * Menghubungkan UI ke DebtDAO untuk mencatat kewajiban usaha, menandai lunas,
+ * menghapus data, serta menghitung ringkasan nominal belum lunas.
+ */
 public class DebtController implements Initializable {
 
     @FXML private Label lblTotalHutang;
@@ -62,6 +68,7 @@ public class DebtController implements Initializable {
     private List<Debt> piutangList = Collections.emptyList();
     private String activeType = "hutang";
 
+    /** Menyiapkan filter dan memuat data hutang/piutang dari database. */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         if (txtSearchDebt != null) {
@@ -81,28 +88,33 @@ public class DebtController implements Initializable {
     }
 
     @FXML
+    /** Mengubah tampilan daftar ke data hutang. */
     public void openTabHutang() {
         activeType = "hutang";
         refreshListSection();
     }
 
     @FXML
+    /** Mengubah tampilan daftar ke data piutang. */
     public void openTabPiutang() {
         activeType = "piutang";
         refreshListSection();
     }
 
     @FXML
+    /** Membuka dialog tambah hutang supplier. */
     public void handleTambahHutang() {
         showDebtDialog("hutang");
     }
 
     @FXML
+    /** Membuka dialog tambah piutang customer. */
     public void handleTambahPiutang() {
         showDebtDialog("piutang");
     }
 
     @FXML
+    /** Mengembalikan filter hutang/piutang ke kondisi default. */
     public void handleResetFilter() {
         if (txtSearchDebt != null) txtSearchDebt.clear();
         if (cmbFilterStatus != null) cmbFilterStatus.setValue("Semua status");
@@ -110,6 +122,7 @@ public class DebtController implements Initializable {
         refreshListSection();
     }
 
+    /** Mengambil ulang data dari DebtDAO dan menyegarkan kartu ringkasan. */
     private void refreshData() {
         hutangList = debtDAO.findAllByType("hutang");
         piutangList = debtDAO.findAllByType("piutang");
@@ -126,6 +139,7 @@ public class DebtController implements Initializable {
         refreshListSection();
     }
 
+    /** Merender tabel custom hutang/piutang sesuai tab dan filter aktif. */
     private void refreshListSection() {
         styleTabButtons();
 
@@ -153,10 +167,12 @@ public class DebtController implements Initializable {
         }
     }
 
+    /** Mengambil list sesuai tab yang sedang aktif. */
     private List<Debt> getActiveList() {
         return "hutang".equals(activeType) ? hutangList : piutangList;
     }
 
+    /** Menerapkan pencarian, filter status, dan sort nominal pada list aktif. */
     private List<Debt> getFilteredActiveList() {
         List<Debt> source = getActiveList();
         String keyword = txtSearchDebt == null ? "" : txtSearchDebt.getText();
@@ -170,6 +186,7 @@ public class DebtController implements Initializable {
                 .toList();
     }
 
+    /** Menentukan urutan hutang/piutang berdasarkan tanggal atau nominal. */
     private Comparator<Debt> debtComparator() {
         String sort = cmbSortNominal == null ? "Urutan default" : cmbSortNominal.getValue();
         if ("Nominal tertinggi".equals(sort)) {
@@ -182,6 +199,7 @@ public class DebtController implements Initializable {
                 .thenComparing(Debt::getNama, String.CASE_INSENSITIVE_ORDER);
     }
 
+    /** Mencocokkan satu data hutang/piutang dengan keyword pencarian. */
     private boolean matchesSearch(Debt debt, String query) {
         if (query.isBlank()) {
             return true;
@@ -194,6 +212,7 @@ public class DebtController implements Initializable {
                 || contains(formatCurrency(debt.getNominal()), query);
     }
 
+    /** Mencocokkan satu data dengan filter lunas/belum lunas. */
     private boolean matchesStatus(Debt debt, String status) {
         if (status == null || "Semua status".equals(status)) {
             return true;
@@ -201,6 +220,7 @@ public class DebtController implements Initializable {
         return "Belum Lunas".equals(status) ? debt.isBelumLunas() : !debt.isBelumLunas();
     }
 
+    /** Membuat tampilan kosong saat belum ada data pada tab aktif. */
     private VBox buildEmptyState(String activeLabel) {
         VBox box = new VBox(8);
         box.setAlignment(Pos.CENTER);
@@ -223,6 +243,7 @@ public class DebtController implements Initializable {
         return box;
     }
 
+    /** Membuat header tabel custom hutang/piutang. */
     private GridPane buildHeaderRow() {
         GridPane row = createBaseRow();
         row.setStyle(
@@ -243,6 +264,7 @@ public class DebtController implements Initializable {
         return row;
     }
 
+    /** Membuat satu baris data beserta tombol lunas/hapus. */
     private GridPane buildDataRow(Debt debt) {
         GridPane row = createBaseRow();
         row.setStyle(
@@ -314,6 +336,7 @@ public class DebtController implements Initializable {
         return row;
     }
 
+    /** Membuat struktur grid dasar agar kolom tabel rapi. */
     private GridPane createBaseRow() {
         GridPane row = new GridPane();
         row.setHgap(12);
@@ -332,6 +355,7 @@ public class DebtController implements Initializable {
         return row;
     }
 
+    /** Membuat kolom grid berdasarkan persentase lebar. */
     private ColumnConstraints percentColumn(double percentWidth) {
         ColumnConstraints constraints = new ColumnConstraints();
         constraints.setPercentWidth(percentWidth);
@@ -339,6 +363,7 @@ public class DebtController implements Initializable {
         return constraints;
     }
 
+    /** Membuat label header tabel. */
     private Label createHeaderLabel(String text) {
         Label label = new Label(text);
         label.setStyle(
@@ -349,6 +374,7 @@ public class DebtController implements Initializable {
         return label;
     }
 
+    /** Membuat label isi tabel. */
     private Label createCellLabel(String text, boolean bold) {
         Label label = new Label(text);
         label.setMaxWidth(Double.MAX_VALUE);
@@ -360,6 +386,7 @@ public class DebtController implements Initializable {
         return label;
     }
 
+    /** Membuat badge status lunas/belum lunas dengan warna sesuai tipe. */
     private Label buildStatusBadge(Debt debt) {
         Label badge = new Label();
         badge.setStyle(
@@ -390,6 +417,7 @@ public class DebtController implements Initializable {
         return badge;
     }
 
+    /** Konfirmasi lalu menghapus data hutang/piutang dari database. */
     private void handleDelete(Debt debt) {
         String label = capitalize(debt.getTipe());
         if (!AlertUtil.showConfirm("Hapus " + label,
@@ -402,6 +430,7 @@ public class DebtController implements Initializable {
         ToastUtil.showSuccess(containerDaftar, label + " berhasil dihapus.");
     }
 
+    /** Konfirmasi lalu mengubah status hutang/piutang menjadi lunas. */
     private void handleMarkAsPaid(Debt debt) {
         String label = capitalize(debt.getTipe());
         if (!AlertUtil.showConfirm("Tandai Lunas",
@@ -414,6 +443,7 @@ public class DebtController implements Initializable {
         ToastUtil.showSuccess(containerDaftar, label + " berhasil ditandai lunas.");
     }
 
+    /** Membuat form tambah hutang atau piutang sesuai tipe yang dikirim. */
     private void showDebtDialog(String tipe) {
         boolean isHutang = "hutang".equalsIgnoreCase(tipe);
         String title = isHutang ? "Tambah Hutang Baru" : "Tambah Piutang Baru";
@@ -513,18 +543,21 @@ public class DebtController implements Initializable {
         dialog.showAndWait();
     }
 
+    /** Membuat label form. */
     private Label fieldLabel(String text) {
         Label label = new Label(text);
         label.getStyleClass().add("form-label");
         return label;
     }
 
+    /** Membungkus label dan input menjadi satu grup form. */
     private VBox fieldGroup(String labelText, Region input) {
         VBox group = new VBox(8, fieldLabel(labelText), input);
         input.setMaxWidth(Double.MAX_VALUE);
         return group;
     }
 
+    /** Membuat TextField standar untuk dialog. */
     private TextField createTextField(String promptText) {
         TextField textField = new TextField();
         textField.setPromptText(promptText);
@@ -532,6 +565,7 @@ public class DebtController implements Initializable {
         return textField;
     }
 
+    /** Membuat DatePicker dengan format tanggal Indonesia. */
     private DatePicker createDatePicker() {
         DatePicker datePicker = new DatePicker();
         datePicker.setMaxWidth(Double.MAX_VALUE);
@@ -557,6 +591,7 @@ public class DebtController implements Initializable {
         return datePicker;
     }
 
+    /** Mengatur style tab hutang/piutang sesuai tab yang aktif. */
     private void styleTabButtons() {
         String activeStyle = """
                 -fx-background-color: white;
@@ -582,6 +617,7 @@ public class DebtController implements Initializable {
         btnTabPiutang.setStyle("piutang".equals(activeType) ? activeStyle : inactiveStyle);
     }
 
+    /** Mengubah input nominal terformat menjadi angka dan menolak nilai negatif. */
     private double parseNominal(String value) {
         if (containsNegativeSign(value)) {
             throw new NumberFormatException();
@@ -594,6 +630,7 @@ public class DebtController implements Initializable {
         return Double.parseDouble(cleaned);
     }
 
+    /** Parser nominal opsional dengan fallback. */
     private double parseOptionalNominal(String value, double fallback) {
         String cleaned = normalizeLeadingZeros(extractDigits(value));
         if (cleaned.isBlank()) {
@@ -602,6 +639,7 @@ public class DebtController implements Initializable {
         return Double.parseDouble(cleaned);
     }
 
+    /** Memformat input nominal otomatis menjadi angka ribuan saat diketik. */
     private void configureCurrencyField(TextField field) {
         final boolean[] updating = {false};
         field.textProperty().addListener((obs, oldValue, newValue) -> {
@@ -638,14 +676,17 @@ public class DebtController implements Initializable {
         });
     }
 
+    /** Mengecek berbagai karakter minus agar nominal tidak bisa negatif. */
     private boolean containsNegativeSign(String value) {
         return value != null && value.matches(".*[-\\u2212\\u2013\\u2014].*");
     }
 
+    /** Mengambil hanya angka dari teks nominal. */
     private String extractDigits(String value) {
         return value == null ? "" : value.replaceAll("[^0-9]", "");
     }
 
+    /** Menghapus nol berlebih di depan digit. */
     private String normalizeLeadingZeros(String digits) {
         if (digits == null || digits.isBlank()) {
             return "";
@@ -653,6 +694,7 @@ public class DebtController implements Initializable {
         return digits.replaceFirst("^0+(?!$)", "");
     }
 
+    /** Mengubah digit mentah menjadi format ribuan. */
     private String formatDigits(String digits) {
         if (digits == null || digits.isBlank()) {
             return "";
@@ -660,14 +702,17 @@ public class DebtController implements Initializable {
         return CurrencyFormatUtil.formatNumber(Long.parseLong(digits));
     }
 
+    /** Mengubah nominal menjadi format Rupiah. */
     private String formatCurrency(double amount) {
         return CurrencyFormatUtil.formatRupiah(amount);
     }
 
+    /** Membuat teks jumlah item yang belum lunas. */
     private String formatOutstandingCount(int count) {
         return count + " item belum lunas";
     }
 
+    /** Mengubah huruf pertama teks menjadi kapital. */
     private String capitalize(String value) {
         if (value == null || value.isEmpty()) {
             return value;
@@ -675,6 +720,7 @@ public class DebtController implements Initializable {
         return value.substring(0, 1).toUpperCase(localeId) + value.substring(1);
     }
 
+    /** Pencarian teks aman terhadap nilai null. */
     private boolean contains(String source, String query) {
         return source != null && source.toLowerCase(localeId).contains(query);
     }

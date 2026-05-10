@@ -7,8 +7,15 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 
+/**
+ * DAO pengguna.
+ * Berhubungan langsung dengan tabel users untuk login dan pembuatan akun default.
+ */
 public class UserDAO {
 
+    /**
+     * Mencari pengguna berdasarkan username saat proses login.
+     */
     public User findByUsername(String username) {
         String sql = "SELECT * FROM users WHERE username = ?";
         try (Connection conn = koneksi.getConnection();
@@ -29,6 +36,9 @@ public class UserDAO {
         return null;
     }
 
+    /**
+     * Menambahkan user awal hanya jika username tersebut belum ada.
+     */
     public void insertIfNotExists(String username, String password) {
         String check = "SELECT COUNT(*) FROM users WHERE username = ?";
         String insert = "INSERT INTO users (username, password) VALUES (?, ?)";
@@ -48,6 +58,9 @@ public class UserDAO {
         }
     }
 
+    /**
+     * Mengubah nilai tanggal dari database menjadi LocalDateTime Java.
+     */
     private LocalDateTime readDateTime(ResultSet rs, String column) throws SQLException {
         String value = rs.getString(column);
         if (value == null || value.isBlank()) {

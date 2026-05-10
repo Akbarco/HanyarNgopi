@@ -7,8 +7,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * Menyiapkan struktur database pertama kali aplikasi dijalankan.
+ * Kelas ini membuat tabel inti, indeks, migrasi kolom ringan, dan seed menu awal.
+ */
 public class initDatabase {
 
+    /**
+     * Membuat semua tabel yang dibutuhkan aplikasi jika belum tersedia.
+     * Dipanggil dari MainApp sebelum halaman login dibuka.
+     */
     public static void init () {
         try (Connection conn = koneksi.getConnection()) {
             if (conn == null) {
@@ -145,6 +153,10 @@ public class initDatabase {
         }
     }
 
+    /**
+     * Mengisi daftar menu bawaan HanyarNgopi satu kali saja.
+     * Seed ini membantu aplikasi langsung punya data contoh/awal untuk demo dan operasional.
+     */
     private static void seedDefaultMenus(Connection conn) throws SQLException {
         String seedKey = "hanyarngopi_menu_2026_01";
         if (isSeedExecuted(conn, seedKey)) {
@@ -239,6 +251,10 @@ public class initDatabase {
         }
     }
 
+    /**
+     * Mengecek apakah seed tertentu sudah pernah dijalankan.
+     * Tujuannya agar menu bawaan tidak terduplikasi setiap aplikasi dibuka.
+     */
     private static boolean isSeedExecuted(Connection conn, String seedKey) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(
                 "SELECT 1 FROM app_seed WHERE seed_key = ?"
@@ -250,6 +266,10 @@ public class initDatabase {
         }
     }
 
+    /**
+     * Menambahkan kolom baru hanya jika kolom tersebut belum ada.
+     * Dipakai sebagai migrasi sederhana ketika struktur database berkembang.
+     */
     private static void ensureColumn(Statement stmt, Connection conn,
                                      String tableName, String columnName,
                                      String alterSql) throws SQLException {
@@ -258,6 +278,9 @@ public class initDatabase {
         }
     }
 
+    /**
+     * Membaca metadata SQLite untuk memastikan keberadaan kolom pada tabel tertentu.
+     */
     private static boolean hasColumn(Connection conn, String tableName, String columnName) throws SQLException {
         DatabaseMetaData metaData = conn.getMetaData();
         try (ResultSet columns = metaData.getColumns(null, null, tableName, columnName)) {

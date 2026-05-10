@@ -2,6 +2,10 @@ package com.pos.model;
 
 import java.time.LocalDateTime;
 
+/**
+ * Model header transaksi penjualan.
+ * Menyimpan siapa pengguna yang mencatat transaksi, waktu transaksi, dan total pembayaran.
+ */
 public class Transaksi {
     private int idTransaksi;
     private int idUser;

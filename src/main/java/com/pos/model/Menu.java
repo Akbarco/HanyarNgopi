@@ -1,5 +1,9 @@
 package com.pos.model;
 
+/**
+ * Model data menu/produk yang dijual.
+ * Terhubung ke transaksi, stok, dan laporan penjualan per menu.
+ */
 public class Menu {
     private int idMenu;
     private String namaMenu;
@@ -36,6 +40,9 @@ public class Menu {
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
 
+    /**
+     * Menampilkan nama menu pada komponen pilihan JavaFX seperti ComboBox.
+     */
     @Override
     public String toString() { return namaMenu; }
 }

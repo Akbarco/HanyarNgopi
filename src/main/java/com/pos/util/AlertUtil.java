@@ -7,19 +7,32 @@ import javafx.scene.control.DialogPane;
 
 import java.util.Optional;
 
+/**
+ * Helper dialog standar aplikasi.
+ * Dipakai controller untuk menampilkan error dan konfirmasi dengan gaya visual yang konsisten.
+ */
 public class AlertUtil {
 
+    /**
+     * Menampilkan dialog error blocking untuk validasi atau kegagalan proses.
+     */
     public static void showError(String title, String message) {
         Alert alert = buildAlert(Alert.AlertType.ERROR, title, message);
         alert.showAndWait();
     }
 
+    /**
+     * Menampilkan dialog konfirmasi dan mengembalikan true jika pengguna memilih OK.
+     */
     public static boolean showConfirm(String title, String message) {
         Alert alert = buildAlert(Alert.AlertType.CONFIRMATION, title, message);
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }
 
+    /**
+     * Membuat objek Alert dasar sebelum diberi styling.
+     */
     private static Alert buildAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -29,6 +42,9 @@ public class AlertUtil {
         return alert;
     }
 
+    /**
+     * Mengatur tampilan tombol dan panel dialog agar konsisten dengan UI aplikasi.
+     */
     private static void styleAlert(Alert alert) {
         DialogPane dp = alert.getDialogPane();
 

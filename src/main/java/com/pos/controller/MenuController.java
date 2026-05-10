@@ -25,6 +25,12 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Controller halaman Kelola Menu.
+ *
+ * Menghubungkan tabel menu di UI dengan MenuDAO, termasuk tambah/edit,
+ * arsip menu, restore menu, pencarian, filter kategori, dan sort harga.
+ */
 public class MenuController implements Initializable {
 
     @FXML private TableView<Menu> tableMenu;
@@ -47,6 +53,7 @@ public class MenuController implements Initializable {
     private final Locale localeId = new Locale("id", "ID");
     private boolean activeView = true;
 
+    /** Menyiapkan tabel, filter, dan data awal menu aktif. */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setupColumns();
@@ -54,6 +61,7 @@ public class MenuController implements Initializable {
         loadData();
     }
 
+    /** Menghubungkan search, kategori, dan sort harga ke daftar menu. */
     private void setupSearch() {
         if (tableMenu != null) {
             tableMenu.setItems(sortedMenuList);
@@ -77,6 +85,7 @@ public class MenuController implements Initializable {
         }
     }
 
+    /** Mengatur kolom tabel menu, format harga, badge kategori, dan tombol aksi. */
     private void setupColumns() {
         colNama.setPrefWidth(260);
         colNama.setMinWidth(220);
@@ -206,6 +215,7 @@ public class MenuController implements Initializable {
                 }
             }
 
+            /** Mengambil menu pada baris tabel yang sedang ditekan tombol aksinya. */
             private Menu getCurrentMenu() {
                 int index = getIndex();
                 if (index < 0 || index >= getTableView().getItems().size()) {
@@ -216,12 +226,14 @@ public class MenuController implements Initializable {
         });
     }
 
+    /** Mengambil menu dari database sesuai tab aktif atau arsip. */
     private void loadData() {
         menuList.setAll(activeView ? menuDAO.findByActive(true) : menuDAO.findArchived());
         applySearchFilter();
         updateMenuTabs();
     }
 
+    /** Menyaring daftar menu berdasarkan keyword dan kategori. */
     private void applySearchFilter() {
         String keyword = txtSearchMenu == null ? "" : txtSearchMenu.getText();
         String query = keyword == null ? "" : keyword.trim().toLowerCase(localeId);
@@ -241,6 +253,7 @@ public class MenuController implements Initializable {
         applySort();
     }
 
+    /** Mengurutkan daftar menu berdasarkan pilihan user. */
     private void applySort() {
         String sort = cmbSortHarga == null ? "Urutan default" : cmbSortHarga.getValue();
         if ("Harga tertinggi".equals(sort)) {
@@ -254,23 +267,27 @@ public class MenuController implements Initializable {
     }
 
     @FXML
+    /** Membuka dialog tambah menu baru. */
     public void handleTambahMenu() {
         showTambahDialog();
     }
 
     @FXML
+    /** Menampilkan daftar menu yang masih aktif dan bisa dipakai transaksi. */
     public void openTabAktif() {
         activeView = true;
         loadData();
     }
 
     @FXML
+    /** Menampilkan daftar menu yang sudah diarsipkan. */
     public void openTabArsip() {
         activeView = false;
         loadData();
     }
 
     @FXML
+    /** Menghapus keyword/filter/sort supaya tabel kembali ke default. */
     public void handleResetFilter() {
         if (txtSearchMenu != null) txtSearchMenu.clear();
         if (cmbFilterKategori != null) cmbFilterKategori.setValue("Semua kategori");
@@ -278,6 +295,7 @@ public class MenuController implements Initializable {
         applySearchFilter();
     }
 
+    /** Menyesuaikan judul tabel, placeholder, dan style tab sesuai mode aktif/arsip. */
     private void updateMenuTabs() {
         if (lblTableTitle != null) {
             lblTableTitle.setText(activeView ? "Daftar Menu Aktif" : "Menu Diarsipkan");
@@ -293,11 +311,13 @@ public class MenuController implements Initializable {
         }
     }
 
+    /** Memberi class CSS pada tombol tab aktif atau nonaktif. */
     private void setTabStyle(Button button, boolean active) {
         button.getStyleClass().removeAll("menu-segment", "menu-segment-active");
         button.getStyleClass().add(active ? "menu-segment-active" : "menu-segment");
     }
 
+    /** Membuat form modal tambah menu lalu menyimpan ke MenuDAO. */
     private void showTambahDialog() {
         Stage dialog = createDialog("Tambah Menu Baru");
 
@@ -322,6 +342,7 @@ public class MenuController implements Initializable {
         dialog.showAndWait();
     }
 
+    /** Membuat form modal edit menu dari data yang dipilih di tabel. */
     private void showEditDialog(Menu menu) {
         Stage dialog = createDialog("Edit Menu");
 
@@ -351,6 +372,7 @@ public class MenuController implements Initializable {
         dialog.showAndWait();
     }
 
+    /** Validasi input form lalu memutuskan insert atau update ke database. */
     private boolean validateAndSave(TextField txtNama, ComboBox<String> cmbKategori,
                                     TextField txtHarga, Menu existing) {
         String nama = txtNama.getText().trim();
@@ -386,6 +408,7 @@ public class MenuController implements Initializable {
 
     // ===== HELPERS =====
 
+    /** Menyiapkan window modal agar form fokus di atas halaman menu. */
     private Stage createDialog(String title) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
@@ -397,6 +420,7 @@ public class MenuController implements Initializable {
         return dialog;
     }
 
+    /** Membuat TextField dengan style form standar. */
     private TextField createTextField(String prompt) {
         TextField tf = new TextField();
         tf.setPromptText(prompt);
@@ -404,6 +428,7 @@ public class MenuController implements Initializable {
         return tf;
     }
 
+    /** Membuat pilihan kategori menu yang dipakai pada form tambah/edit. */
     private ComboBox<String> createKategoriCombo() {
         ComboBox<String> cmb = new ComboBox<>();
         cmb.setItems(FXCollections.observableArrayList("makanan", "minuman", "snack"));
@@ -413,6 +438,7 @@ public class MenuController implements Initializable {
         return cmb;
     }
 
+    /** Membuat tombol batal yang menutup dialog. */
     private Button createBtnBatal(Stage dialog) {
         Button btn = new Button("Batal");
         btn.getStyleClass().add("secondary-button");
@@ -421,6 +447,7 @@ public class MenuController implements Initializable {
         return btn;
     }
 
+    /** Menyusun layout form menu supaya tambah dan edit memakai struktur yang sama. */
     private VBox buildDialogLayout(String title, TextField txtNama,
                                    ComboBox<String> cmbKategori, TextField txtHarga,
                                    Button btnBatal, Button btnSimpan) {
@@ -445,30 +472,35 @@ public class MenuController implements Initializable {
         return root;
     }
 
+    /** Membuat label field dengan style konsisten. */
     private Label fieldLabel(String text) {
         Label lbl = new Label(text);
         lbl.getStyleClass().add("form-label");
         return lbl;
     }
 
+    /** Membuat scene dialog dan memasukkan stylesheet utama. */
     private Scene createDialogScene(VBox root, double width, double height) {
         Scene scene = new Scene(root, width, height);
         scene.getStylesheets().add(getClass().getResource("/com/pos/view/css/menu.css").toExternalForm());
         return scene;
     }
 
+    /** Style lama untuk input; disimpan bila perlu fallback inline style. */
     private String inputStyle() {
         return "-fx-background-color: #F3F4F6; -fx-background-radius: 8;" +
                 "-fx-border-color: transparent; -fx-pref-height: 40;" +
                 "-fx-font-size: 13; -fx-padding: 0 12 0 12;";
     }
 
+    /** Style tombol utama untuk aksi simpan/tambah di dialog. */
     private String btnPrimaryStyle() {
         return "-fx-background-color: linear-gradient(to right, #5B4BFF, #4F46E5); -fx-text-fill: white;" +
                 "-fx-background-radius: 12; -fx-cursor: hand;" +
                 "-fx-pref-height: 48; -fx-pref-width: 118; -fx-font-weight: bold;";
     }
 
+    /** Memformat input harga otomatis menjadi angka ribuan saat diketik. */
     private void configureCurrencyField(TextField field) {
         final boolean[] updating = {false};
         field.textProperty().addListener((obs, oldValue, newValue) -> {
@@ -497,6 +529,7 @@ public class MenuController implements Initializable {
         });
     }
 
+    /** Mengubah teks harga terformat kembali menjadi angka untuk disimpan. */
     private double parseCurrency(String value) {
         String digits = extractDigits(value);
         if (digits.isBlank()) {
@@ -505,6 +538,7 @@ public class MenuController implements Initializable {
         return Double.parseDouble(normalizeLeadingZeros(digits));
     }
 
+    /** Parser harga opsional; mengembalikan fallback jika field kosong. */
     private double parseOptionalCurrency(String value, double fallback) {
         String digits = extractDigits(value);
         if (digits.isBlank()) {
@@ -513,10 +547,12 @@ public class MenuController implements Initializable {
         return Double.parseDouble(normalizeLeadingZeros(digits));
     }
 
+    /** Mengambil hanya karakter angka dari input uang. */
     private String extractDigits(String value) {
         return value == null ? "" : value.replaceAll("[^0-9]", "");
     }
 
+    /** Menghapus nol berlebih di depan angka agar parsing aman. */
     private String normalizeLeadingZeros(String digits) {
         if (digits == null || digits.isBlank()) {
             return "";
@@ -524,6 +560,7 @@ public class MenuController implements Initializable {
         return digits.replaceFirst("^0+(?!$)", "");
     }
 
+    /** Mengubah digit mentah menjadi format ribuan Indonesia. */
     private String formatDigits(String digits) {
         if (digits == null || digits.isBlank()) {
             return "";
@@ -531,18 +568,22 @@ public class MenuController implements Initializable {
         return CurrencyFormatUtil.formatNumber(Long.parseLong(digits));
     }
 
+    /** Format harga tanpa prefix Rp untuk tampilan tabel dan input. */
     private String formatPlainCurrency(double value) {
         return formatDigits(String.valueOf((long) value));
     }
 
+    /** Format harga versi lowercase agar bisa ikut dicari di search box. */
     private String formatCurrencyForSearch(double value) {
         return ("Rp " + formatPlainCurrency(value)).toLowerCase(localeId);
     }
 
+    /** Pencarian teks aman terhadap nilai null. */
     private boolean contains(String source, String query) {
         return source != null && source.toLowerCase(localeId).contains(query);
     }
 
+    /** Mengubah huruf awal kategori menjadi kapital untuk tampilan tabel. */
     private String capitalize(String s) {
         if (s == null || s.isEmpty()) return s;
         return s.substring(0, 1).toUpperCase() + s.substring(1);

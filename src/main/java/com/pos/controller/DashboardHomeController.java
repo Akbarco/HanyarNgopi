@@ -28,6 +28,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Controller untuk halaman ringkasan dashboard.
+ *
+ * Data yang ditampilkan berasal langsung dari tabel SQLite: transactions,
+ * transaction_detail, debts, stock, dan menus.
+ */
 public class DashboardHomeController implements Initializable {
 
     @FXML private Label lblTotalPenjualan;
@@ -40,21 +46,25 @@ public class DashboardHomeController implements Initializable {
     private final DateTimeFormatter dateFormatter =
             DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm", new Locale("id", "ID"));
 
+    /** Saat halaman dibuka, statistik utama langsung dimuat dari database. */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         loadStats();
     }
 
     @FXML
+    /** Shortcut dari kartu dashboard menuju halaman Stok di sidebar utama. */
     public void handleOpenStock() {
         navigateBySidebarText("Stok");
     }
 
     @FXML
+    /** Shortcut dari kartu dashboard menuju halaman Transaksi di sidebar utama. */
     public void handleOpenTransaksi() {
         navigateBySidebarText("Transaksi");
     }
 
+    /** Mengambil total penjualan, jumlah transaksi, hutang, piutang, stok warning, dan transaksi terbaru. */
     private void loadStats() {
         Connection conn = koneksi.getConnection();
         if (conn == null) {
@@ -86,6 +96,7 @@ public class DashboardHomeController implements Initializable {
         }
     }
 
+    /** Membaca stok yang jumlahnya di bawah/sama dengan stok minimum untuk ditampilkan sebagai peringatan. */
     private void renderStockWarnings(Connection conn) throws SQLException {
         if (containerStokWarning == null) {
             return;
@@ -121,6 +132,7 @@ public class DashboardHomeController implements Initializable {
         }
     }
 
+    /** Mengambil tiga transaksi terbaru untuk panel aktivitas dashboard. */
     private void renderRecentTransactions(Connection conn) throws SQLException {
         if (containerTransaksiBaru == null) {
             return;
@@ -159,6 +171,7 @@ public class DashboardHomeController implements Initializable {
         }
     }
 
+    /** Mengambil nama item dan metode pembayaran dari detail transaksi tertentu. */
     private TransactionSnapshot loadTransactionSnapshot(Connection conn, int idTransaksi) throws SQLException {
         String sql = """
                 SELECT m.nama_menu, td.metode_pembayaran
@@ -190,6 +203,7 @@ public class DashboardHomeController implements Initializable {
         return new TransactionSnapshot(String.join(", ", itemNames), formatMetode(paymentMethod));
     }
 
+    /** Membuat komponen kartu kecil untuk stok yang perlu diperhatikan. */
     private VBox createStockWarningCard(String namaMenu, int stok, int minimum, String satuan) {
         VBox card = new VBox(8);
         card.getStyleClass().add("warning-item-card");
@@ -212,6 +226,7 @@ public class DashboardHomeController implements Initializable {
         return card;
     }
 
+    /** Membuat kartu riwayat transaksi terbaru di dashboard. */
     private VBox createTransactionCard(String title, String tanggal, double total, String paymentMethod) {
         VBox card = new VBox(10);
         card.getStyleClass().add("transaction-row-card");
@@ -249,6 +264,7 @@ public class DashboardHomeController implements Initializable {
         return card;
     }
 
+    /** Membuat tampilan kosong saat tidak ada data pada panel dashboard. */
     private VBox createEmptyState(String text) {
         VBox empty = new VBox();
         empty.setAlignment(Pos.CENTER);
@@ -261,6 +277,7 @@ public class DashboardHomeController implements Initializable {
         return empty;
     }
 
+    /** Helper untuk query agregat database yang hasilnya angka desimal. */
     private double queryDouble(Connection conn, String sql) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -268,6 +285,7 @@ public class DashboardHomeController implements Initializable {
         }
     }
 
+    /** Helper untuk query agregat database yang hasilnya angka bulat. */
     private int queryInt(Connection conn, String sql) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -275,6 +293,7 @@ public class DashboardHomeController implements Initializable {
         }
     }
 
+    /** Mengisi panel dengan empty state saat database gagal dibaca atau belum ada data. */
     private void renderEmptyPanels() {
         if (containerStokWarning != null) {
             containerStokWarning.getChildren().setAll(createEmptyState("Tidak ada stok menipis"));
@@ -284,6 +303,7 @@ public class DashboardHomeController implements Initializable {
         }
     }
 
+    /** Mengisi angka default nol agar dashboard tetap aman saat query gagal. */
     private void setFallbackStats() {
         setLabelText(lblTotalPenjualan, "Rp 0");
         setLabelText(lblJumlahTransaksi, "0");
@@ -291,10 +311,12 @@ public class DashboardHomeController implements Initializable {
         setLabelText(lblPiutang, "Rp 0");
     }
 
+    /** Mengubah angka menjadi format Rupiah konsisten. */
     private String formatCurrency(double amount) {
         return CurrencyFormatUtil.formatRupiah(amount);
     }
 
+    /** Mengubah kode pembayaran database ke label yang mudah dibaca user. */
     private String formatMetode(String metode) {
         if (metode == null) {
             return "-";
@@ -306,12 +328,14 @@ public class DashboardHomeController implements Initializable {
         };
     }
 
+    /** Mengisi Label hanya jika komponen FXML tersedia. */
     private void setLabelText(Label label, String text) {
         if (label != null) {
             label.setText(text);
         }
     }
 
+    /** Mencari tombol sidebar berdasarkan teks lalu menjalankan aksinya. */
     private void navigateBySidebarText(String text) {
         if (containerTransaksiBaru == null || containerTransaksiBaru.getScene() == null) {
             return;
@@ -323,6 +347,7 @@ public class DashboardHomeController implements Initializable {
         }
     }
 
+    /** Menelusuri node JavaFX secara rekursif untuk menemukan tombol target. */
     private Button findButtonByText(Node node, String text) {
         if (node instanceof Button button && text.equals(button.getText())) {
             return button;
@@ -340,6 +365,7 @@ public class DashboardHomeController implements Initializable {
         return null;
     }
 
+    /** Membaca tanggal dari SQLite yang kadang tersimpan sebagai teks atau timestamp. */
     private LocalDateTime readDateTime(ResultSet rs, String column) throws SQLException {
         String value = rs.getString(column);
         if (value == null || value.isBlank()) {
@@ -355,5 +381,6 @@ public class DashboardHomeController implements Initializable {
         return timestamp == null ? null : timestamp.toLocalDateTime();
     }
 
+    /** Data ringkas transaksi untuk panel aktivitas dashboard. */
     private record TransactionSnapshot(String title, String paymentMethod) {}
 }

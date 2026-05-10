@@ -1,3 +1,7 @@
+/*
+ * Style layar login: background, kartu login, input username/password,
+ * dan tombol masuk yang dipakai oleh LoginController.
+ */
 .root-pane {
     -fx-background-color: linear-gradient(to bottom right, #FBF7F2 0%, #FFFDFC 46%, #F2E9DF 100%);
     -fx-alignment: center;

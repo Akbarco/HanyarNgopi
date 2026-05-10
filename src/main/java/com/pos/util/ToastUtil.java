@@ -21,6 +21,10 @@ import javafx.util.Duration;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+/**
+ * Helper notifikasi kecil non-blocking.
+ * Dipakai setelah aksi sukses agar pengguna mendapat feedback tanpa dialog popup besar.
+ */
 public final class ToastUtil {
 
     private static final Duration TOAST_DURATION = Duration.seconds(2.4);
@@ -32,6 +36,9 @@ public final class ToastUtil {
     private ToastUtil() {
     }
 
+    /**
+     * Menampilkan toast sukses berdasarkan node yang ada di scene aktif.
+     */
     public static void showSuccess(Node anchor, String message) {
         if (anchor == null || anchor.getScene() == null) {
             return;
@@ -39,6 +46,9 @@ public final class ToastUtil {
         showSuccess(anchor.getScene().getWindow(), message);
     }
 
+    /**
+     * Menampilkan toast sukses pada window tertentu.
+     */
     public static void showSuccess(Window contextWindow, String message) {
         if (message == null || message.isBlank()) {
             return;
@@ -64,6 +74,9 @@ public final class ToastUtil {
         handle.show();
     }
 
+    /**
+     * Jika toast dipanggil dari dialog, toast diarahkan ke window pemilik dialog.
+     */
     private static Window resolveTargetWindow(Window contextWindow) {
         if (contextWindow instanceof Stage stage && stage.getOwner() != null) {
             return stage.getOwner();
@@ -71,6 +84,9 @@ public final class ToastUtil {
         return contextWindow;
     }
 
+    /**
+     * Membuat komponen visual toast.
+     */
     private static HBox buildToast(String message) {
         StackPane iconWrap = new StackPane();
         iconWrap.setMinSize(34, 34);
@@ -114,6 +130,9 @@ public final class ToastUtil {
         return toast;
     }
 
+    /**
+     * Menyimpan state toast aktif dan mengatur animasi serta posisi popup.
+     */
     private static final class ToastHandle {
         private final Window window;
         private final Popup popup;
@@ -134,6 +153,9 @@ public final class ToastUtil {
             popup.getContent().add(content);
         }
 
+        /**
+         * Menampilkan toast, memasang listener posisi, dan menjadwalkan animasi keluar.
+         */
         private void show() {
             popup.show(window);
             attachWindowListeners();
@@ -143,6 +165,9 @@ public final class ToastUtil {
             delay.playFromStart();
         }
 
+        /**
+         * Animasi masuk toast.
+         */
         private void playShowAnimation() {
             FadeTransition fade = new FadeTransition(ANIMATION_DURATION, content);
             fade.setFromValue(0);
@@ -155,6 +180,9 @@ public final class ToastUtil {
             new ParallelTransition(fade, slide).play();
         }
 
+        /**
+         * Animasi keluar toast.
+         */
         private void playHideAnimation() {
             FadeTransition fade = new FadeTransition(ANIMATION_DURATION, content);
             fade.setFromValue(content.getOpacity());
@@ -169,6 +197,9 @@ public final class ToastUtil {
             exit.play();
         }
 
+        /**
+         * Menutup toast langsung dan membersihkan listener.
+         */
         private void hideImmediately() {
             delay.stop();
             detachWindowListeners();
@@ -178,6 +209,9 @@ public final class ToastUtil {
             }
         }
 
+        /**
+         * Memasang listener agar toast tetap di kanan bawah saat window bergerak/resize.
+         */
         private void attachWindowListeners() {
             window.xProperty().addListener(repositionListener);
             window.yProperty().addListener(repositionListener);
@@ -185,6 +219,9 @@ public final class ToastUtil {
             window.heightProperty().addListener(repositionListener);
         }
 
+        /**
+         * Membersihkan listener agar tidak ada referensi window yang tertinggal.
+         */
         private void detachWindowListeners() {
             window.xProperty().removeListener(repositionListener);
             window.yProperty().removeListener(repositionListener);
@@ -192,6 +229,9 @@ public final class ToastUtil {
             window.heightProperty().removeListener(repositionListener);
         }
 
+        /**
+         * Menghitung posisi toast di kanan bawah window.
+         */
         private void positionPopup() {
             content.applyCss();
             content.autosize();

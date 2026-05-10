@@ -1,5 +1,7 @@
 $ErrorActionPreference = "Stop"
 
+# Script pembuat installer self-extracting.
+# Inputnya app image dari folder dist, lalu digabung dengan InstallerStub.cs menjadi file .exe.
 $projectRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $appImageDir = Join-Path $projectRoot "dist\HanyarNgopi"
 $outputDir = Join-Path $projectRoot "dist-installer"

@@ -1,5 +1,7 @@
 $ErrorActionPreference = "Stop"
 
+# Script packaging utama.
+# Alurnya: build JAR Maven, siapkan app image dengan jpackage, lalu buat installer Windows.
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $projectRoot
 
@@ -18,6 +20,7 @@ $appVersion = "1.0.0"
 $appDescription = "Aplikasi desktop Point of Sale dan manajemen operasional HanyarNgopi"
 
 function Assert-LastExitCode {
+    # Mengecek apakah command eksternal terakhir berhasil.
     param(
         [string]$StepName
     )

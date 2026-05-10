@@ -7,8 +7,15 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DAO stok.
+ * Berhubungan langsung dengan tabel stock dan tabel menus untuk menampilkan nama barang.
+ */
 public class StockDAO {
 
+    /**
+     * Mengambil semua stok dari menu aktif untuk halaman Kelola Stok.
+     */
     public List<Stock> findAll() {
         List<Stock> list = new ArrayList<>();
         String sql = """
@@ -31,6 +38,9 @@ public class StockDAO {
         return list;
     }
 
+    /**
+     * Mencari stok berdasarkan ID menu dengan koneksi baru.
+     */
     public Stock findByIdMenu(int idMenu) {
         try (Connection conn = koneksi.getConnection()) {
             if (conn == null) {
@@ -43,6 +53,10 @@ public class StockDAO {
         return null;
     }
 
+    /**
+     * Mencari stok berdasarkan ID menu dengan koneksi yang sudah ada.
+     * Dipakai saat transaksi kasir agar validasi dan update stok tetap satu proses.
+     */
     public Stock findByIdMenu(Connection conn, int idMenu) throws SQLException {
         String sql = "SELECT * FROM stock WHERE id_menu = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -53,6 +67,9 @@ public class StockDAO {
         return null;
     }
 
+    /**
+     * Menambahkan data stok untuk menu tertentu.
+     */
     public void insert(Stock stock) {
         String sql = "INSERT INTO stock (id_menu, jumlah_stok, satuan, stok_minimum) VALUES (?, ?, ?, ?)";
         Connection conn = koneksi.getConnection();
@@ -71,6 +88,9 @@ public class StockDAO {
         }
     }
 
+    /**
+     * Memperbarui jumlah, satuan, dan stok minimum.
+     */
     public void update(Stock stock) {
         String sql = "UPDATE stock SET jumlah_stok=?, satuan=?, stok_minimum=? WHERE id_stok=?";
         Connection conn = koneksi.getConnection();
@@ -89,6 +109,9 @@ public class StockDAO {
         }
     }
 
+    /**
+     * Menghapus data stok berdasarkan ID stok.
+     */
     public void delete(int idStok) {
         String sql = "DELETE FROM stock WHERE id_stok=?";
         Connection conn = koneksi.getConnection();
@@ -104,6 +127,9 @@ public class StockDAO {
         }
     }
 
+    /**
+     * Mengurangi stok saat transaksi berhasil dengan koneksi baru.
+     */
     public boolean decreaseStock(int idMenu, int qty) {
         try (Connection conn = koneksi.getConnection()) {
             if (conn == null) {
@@ -116,6 +142,9 @@ public class StockDAO {
         return false;
     }
 
+    /**
+     * Mengurangi stok memakai koneksi transaksi yang sama dengan penyimpanan penjualan.
+     */
     public boolean decreaseStock(Connection conn, int idMenu, int qty) throws SQLException {
         String sql = "UPDATE stock SET jumlah_stok = jumlah_stok - ? WHERE id_menu = ? AND jumlah_stok >= ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -126,6 +155,9 @@ public class StockDAO {
         }
     }
 
+    /**
+     * Mengubah satu baris hasil query menjadi objek Stock.
+     */
     private Stock mapRow(ResultSet rs) throws SQLException {
         Stock s = new Stock();
         s.setIdStok(rs.getInt("id_stok"));

@@ -13,16 +13,27 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Service kasir.
+ * Mengatur proses transaksi agar penjualan dan pengurangan stok berjalan dalam satu alur.
+ */
 public class KasirService {
 
     private final TransaksiDAO transaksiDAO = new TransaksiDAO();
     private final StockDAO stockDAO = new StockDAO();
 
+    /**
+     * Mengambil stok tersedia untuk validasi saat kasir memilih menu.
+     */
     public int getAvailableStock(int idMenu) {
         Stock stock = stockDAO.findByIdMenu(idMenu);
         return stock == null ? 0 : stock.getJumlahStok();
     }
 
+    /**
+     * Mengecek apakah semua item di keranjang masih memiliki stok cukup.
+     * Mengembalikan pesan error jika ada item yang tidak valid.
+     */
     public String validateStockAvailability(List<TransaksiDetail> details) {
         if (details == null || details.isEmpty()) {
             return "Keranjang masih kosong.";
@@ -57,6 +68,10 @@ public class KasirService {
         return null;
     }
 
+    /**
+     * Menyimpan transaksi lengkap: header transaksi, detail item, dan pengurangan stok.
+     * Jika salah satu langkah gagal, semua perubahan dibatalkan agar data tetap konsisten.
+     */
     public boolean simpanTransaksi(Transaksi transaksi,
                                    List<TransaksiDetail> details,
                                    String metodePembayaran) {
@@ -104,6 +119,9 @@ public class KasirService {
         }
     }
 
+    /**
+     * Versi validasi stok yang memakai koneksi transaksi database yang sama.
+     */
     private String validateStockAvailability(Connection conn, List<TransaksiDetail> details) throws SQLException {
         if (details == null || details.isEmpty()) {
             return "Keranjang masih kosong.";
@@ -138,6 +156,9 @@ public class KasirService {
         return null;
     }
 
+    /**
+     * Menghitung total pembayaran dari seluruh item di keranjang.
+     */
     public double hitungTotal(List<TransaksiDetail> details) {
         return details.stream().mapToDouble(TransaksiDetail::getSubtotal).sum();
     }

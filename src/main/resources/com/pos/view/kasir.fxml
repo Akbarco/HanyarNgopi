@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Tampilan transaksi/kasir.
+    Controller-nya membuat transaksi baru, validasi stok, dan menampilkan riwayat penjualan.
+-->
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>

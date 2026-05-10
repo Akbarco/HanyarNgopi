@@ -19,6 +19,12 @@ import javafx.geometry.Rectangle2D;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+/**
+ * Controller untuk layar login.
+ *
+ * Layar ini menerima username/password, mengirim validasi ke AuthService,
+ * lalu membuka dashboard saat akun ditemukan di database.
+ */
 public class LoginController implements Initializable {
 
     @FXML private StackPane rootPane;
@@ -28,6 +34,7 @@ public class LoginController implements Initializable {
 
     private final AuthService authService = new AuthService();
 
+    /** Menyiapkan ukuran kartu login responsif dan fokus awal ke input username. */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         Platform.runLater(() -> {
@@ -42,6 +49,7 @@ public class LoginController implements Initializable {
         });
     }
 
+    /** Mengatur lebar kartu login mengikuti ukuran window. */
     private void updateCardWidth(double sceneWidth) {
         if (loginCard == null) {
             return;
@@ -53,6 +61,7 @@ public class LoginController implements Initializable {
     }
 
     @FXML
+    /** Validasi input login lalu memanggil AuthService.login. */
     public void handleLogin() {
         String username = txtUsername.getText().trim();
         String password = txtPassword.getText().trim();
@@ -70,6 +79,7 @@ public class LoginController implements Initializable {
         }
     }
 
+    /** Membuka scene dashboard setelah login sukses. */
     private void openDashboard() {
         try {
             FXMLLoader loader = new FXMLLoader(
@@ -86,6 +96,7 @@ public class LoginController implements Initializable {
         }
     }
 
+    /** Memaksimalkan window agar aplikasi demo langsung tampil penuh. */
     private void forceFullWindow(Stage stage) {
         Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
         stage.setMaximized(false);
